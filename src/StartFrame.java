@@ -8,6 +8,8 @@ public class StartFrame extends JFrame {
         setSize(800,800);
         add(ChessPane.getInstance());
         setVisible(true);
+
+
     }
 
 

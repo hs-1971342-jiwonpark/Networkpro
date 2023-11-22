@@ -1,10 +1,17 @@
 import javax.swing.*;
 import java.awt.*;
-public class ChessPane extends JLayeredPane {
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+
+public class ChessPane extends JLayeredPane implements MouseListener {
     public static final int DIMENSION = 8;
-    private static Square[][] grid = new Square[DIMENSION][DIMENSION];
+    public static Square[][] grid = new Square[DIMENSION][DIMENSION];
     private static ChessPane boardInstance = new ChessPane();
 
+    private boolean firstClick = true;
+    private Square first = null;
+    private Square second;
     public static ChessPane getInstance() {
         return boardInstance;
     }
@@ -38,6 +45,7 @@ public class ChessPane extends JLayeredPane {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 add(grid[i][j]);
+                grid[i][j].addMouseListener(this);
             }
         }
 
@@ -45,4 +53,68 @@ public class ChessPane extends JLayeredPane {
         Pawn p = new Pawn(Cor.black, this);
         p.initPos();
     }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+        if(firstClick) {
+            first = findSquare((Square) e.getComponent());
+            move_possible(first);
+            firstClick = false;
+        }
+        else {
+             second = findSquare((Square) e.getComponent());
+            move(first, second);
+            firstClick = true;
+        }
+        //System.out.println(e.getComponent().getParent());
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    private void move_possible(Square sq){
+        switch (sq.Type){
+            case "Pawn":
+                new Pawn(sq.pos.y,sq.pos.x,Cor.white, this).Move_possible();
+                break;
+        }
+    }
+
+    private void move(Square first, Square second){
+        switch (first.Type){
+            case "Pawn":
+                new Pawn(second.pos.y,second.pos.x,Cor.white, this).Move(first);
+                break;
+        }
+    }
+    private Square findSquare(Square sq){
+        for(int i = 0; i<DIMENSION; i++){
+            for(int j = 0; j<DIMENSION; j++){
+                if(grid[i][j] == sq){
+                    grid[i][j].setImage(new ImageIcon("dra.png"));
+                }
+            }
+        }
+        return sq;
+    }
+
+
 }
