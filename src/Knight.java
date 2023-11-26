@@ -1,37 +1,37 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
-public class Pawn extends ChessPiece {
-
-    Pawn(){
-        this.name = "pawn";
+public class Knight extends ChessPiece {
+    private ChessPane chessPane;
+    Knight(){
+        this.name = "knight";
     }
 
-    Pawn(Cor cor, ChessPane chessPane) {
+    Knight(Cor cor, ChessPane chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
 
-    Pawn(Pos pos, Cor cor, ChessPane chessPane) {
+    Knight(Pos pos, Cor cor, ChessPane chessPane) {
         this(cor, chessPane);
         this.pos = pos;
-        this.possble= this.color.equals(Cor.black) ?
-                new Pos[]{new Pos(this.pos.y + 1, this.pos.x), new Pos(this.pos.y + 1, this.pos.x + 1), new Pos(this.pos.y + 1, this.pos.x - 1), new Pos(this.pos.y + 2, this.pos.x)}
-                : new Pos[]{new Pos(this.pos.y - 1, this.pos.x),new Pos(this.pos.y - 1, this.pos.x +1),new Pos(this.pos.y - 1, this.pos.x -1),new Pos(this.pos.y - 2, this.pos.x)};
-        if(!(this.pos.y == 1 || this.pos.y == 6))
-            this.possble = Arrays.copyOfRange(this.possble, 0, this.possble.length-1);
+        this.possble= new Pos[]
+                {new Pos(this.pos.y + 2, this.pos.x -1), new Pos(this.pos.y + 2, this.pos.x + 1),
+                 new Pos(this.pos.y - 2, this.pos.x - 1), new Pos(this.pos.y - 2, this.pos.x + 1),
+                 new Pos(this.pos.y + 1, this.pos.x + 2), new Pos(this.pos.y - 1, this.pos.x + 2),
+                 new Pos(this.pos.y + 1, this.pos.x - 2), new Pos(this.pos.y - 1, this.pos.x - 2)
+                };
     }
 
     protected void initPos() {
-        int j = (this.color == Cor.white) ? 6 : 1;
-        for(int i=0;i<8;i++) {
-            this.pos = new Pos(j,i);
-            chessPane.grid[j][i].setPiece((ChessPiece)this);
-        }
+        int j = (this.color == Cor.white) ? 7 : 0;
+        this.pos = new Pos(j,1);
+        chessPane.grid[j][1].setPiece((ChessPiece)this);
+        this.pos = new Pos(j,6);
+        chessPane.grid[j][6].setPiece((ChessPiece)this);
     }
 
 
@@ -43,44 +43,19 @@ public class Pawn extends ChessPiece {
             chessPane.grid[first.pos.y][first.pos.x].setIcon(null);
             chessPane.grid[this.pos.y][this.pos.x].setImage();
 
-            //프로모션
-            if(this.pos.y == ((this.color == Cor.white)? 7 : 0)){
-                //프로모션 함수 호출
-                promotion();
-            }
         }
     }
     protected void Move_possible() {
-        int first = (this.color == Cor.white) ? 1 :  -1;
         for(Pos i:possble){
             if((i.y < chessPane.DIMENSION && i.y >= 0)
                     && (i.x < chessPane.DIMENSION && i.x >= 0))
 
-                //대각선 이동 통제
-                if(this.pos.x == i.x) {
-                    //움직일 곳이 비여있으면
-                    if ((chessPane.grid[i.y][i.x].havePiece == null)){
-                        //만약 first값이 증감하면, 2칸 움직일 수 잇음
-                        //다만 그 전칸에(1칸 이동한 위치)에 아무것도 없을 경우 움직여라
-                        if(i.y == this.pos.y -2 || i.y == this.pos.y + 2){
-                            if(chessPane.grid[(i.y + first)][i.x].havePiece == null) {
-                                chessPane.grid[i.y][i.x].setBackground(Color.red);
-                            }
-                        }
-                        else
-                            chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
-
-                }
-                else {//대각선에 상대말이 잇을 경우 움직임
-                    if ((chessPane.grid[i.y][i.x].havePiece != null) &&
+                    //대각선에 상대말이 잇을 경우 움직임
+                    if (((chessPane.grid[i.y][i.x].havePiece != null) &&
                             chessPane.playerColor != chessPane.grid[i.y][i.x].havePiece.color)
+                        || (chessPane.grid[i.y][i.x].havePiece == null))
                         chessPane.grid[i.y][i.x].setBackground(Color.red);
                     }
-                    if(isEn_Passant(i)){
-                        chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
-        }
 
     }
 
