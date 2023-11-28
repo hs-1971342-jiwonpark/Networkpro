@@ -1,4 +1,6 @@
-public class Pos {
+import java.io.Serializable;
+
+public class Pos implements Serializable {
     int x;
     int y;
     // Pos 클래스의 생성자

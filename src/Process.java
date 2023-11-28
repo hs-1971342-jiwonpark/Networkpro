@@ -1,10 +1,19 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+import static java.lang.System.exit;
 
 public class Process {
-
+    private static String serverAddress = "localhost";
+    private static int serverPort = 54321;
+    private Socket socket;
     ChessPane pane =null;
     Send send = null;
+    private ObjectOutputStream out;
 
     Square first = null;
     Square second = null;
@@ -58,8 +67,30 @@ public class Process {
     }
     public int Check_second_click(Pos pos){
         //리턴 값에 따라서 클릭 다시 받아야함.
+        try {
+            socket = new Socket(serverAddress,serverPort);
+            out = new ObjectOutputStream(socket.getOutputStream());
+        } catch (UnknownHostException e) {
+            System.err.println("알 수 없는 서버" + e);
+            exit(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Pos message = pos;
+        Send sd = new Send(message);
 
-
+        try {
+            if(sd == null) {
+                System.out.println("널");
+            }
+            out.writeObject(sd);
+            System.out.println(sd.getPos().x);
+            out.flush();
+        } catch (NumberFormatException e) {
+            System.out.println("ㅋ");
+        } catch (IOException e) {
+            System.out.println(e.toString());
+        }
         //좌표가 문제 있으면 리턴
         if(!pos.check_Pos()) return 2;
         //받은 좌표의 Square와 sq 연동

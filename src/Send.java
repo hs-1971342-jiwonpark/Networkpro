@@ -13,7 +13,7 @@ public class Send implements Serializable {
     }
     public Send(Pos pos){
         this.pos = pos;
-        this.sendType = 1;
+        this.sendType = 8;
     }
 
     public Send(Square[][] set){
