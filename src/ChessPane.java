@@ -37,7 +37,6 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     private static void initializeSquares(JPanel parents) {
 
     }
-    git push -f origin
     public ChessPane() {
         setLayout(new GridLayout(DIMENSION, DIMENSION));
         //initializeSquares(super);
