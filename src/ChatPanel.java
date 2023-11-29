@@ -10,7 +10,13 @@ public class ChatPanel extends JPanel {
     private JTextField inputField;
     private JButton sendButton;
 
+    private ChessPane cp = null;
     public ChatPanel() {
+        createUI();
+    }
+
+    public ChatPanel(ChessPane cp) {
+        this.cp = cp;
         createUI();
     }
 
@@ -50,7 +56,37 @@ public class ChatPanel extends JPanel {
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sendChatMessage();
+                for(int i=0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        System.out.println(cp.grid[i][j]);
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+                System.out.println();
+                System.out.println();
+                System.out.println();
+                System.out.println();
+                //sendChatMessage();
+                Square[][] a = new Square[8][8];
+                a = cp.turn.get(cp.turn.size()-1);
+                for(int i=0; i < 8; i++){
+                    for(int j=0; j< 8; j++){
+
+                        cp.grid[i][j] = a[i][j];
+                        if(cp.grid[i][j].havePiece != null) {
+                            System.out.println(cp.grid[i][j]);
+                            cp.grid[i][j].setImage();
+                            cp.grid[i][j].setIcon(cp.grid[i][j].havePiece.pieceImg);
+                        }
+                    }
+                }
+                System.out.println("성공");;
+                for(int i=0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        System.out.println(cp.grid[i][j]);
+                    }
+                }
             }
         });
         inputPanel.add(sendButton, BorderLayout.EAST);

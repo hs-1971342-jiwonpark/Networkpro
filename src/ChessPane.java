@@ -92,7 +92,21 @@ public class ChessPane extends JLayeredPane implements MouseListener {
             switch (process.Check_second_click(ps)){
                 case 1://정상
                     firstClick = true;
-                    turn.add(grid);
+                    Square [][] a = new Square[DIMENSION][DIMENSION];
+                    for(int i=0; i< DIMENSION; i++){
+                        for(int j=0; j< DIMENSION; j++){
+                            a[i][j] = grid[i][j];
+                        }
+                    }
+                    for(int i=0; i < 8; i++){
+                        for(int j=0; j< 8; j++){
+                            if(a[i][j].havePiece != null) {
+                                a[i][j].setImage();
+                                System.out.println(a[i][j].havePiece.name);
+                            }
+                        }
+                    }
+                    turn.add(a);
                     this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
                     for(int i=0;i<8;i++) {
                         for (int j = 0; j < 8; j++) {

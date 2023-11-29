@@ -12,7 +12,8 @@ import java.awt.event.MouseListener;
         protected boolean first_move = true;
 
         public void setImage() {
-            ImageIcon originalIcon = this.havePiece.pieceImg;
+            ImageIcon originalIcon = new ImageIcon((this.havePiece.color.toString())+"_"+this.havePiece.name+ ".png");
+            resizeImage(100, 100);
             Image image = originalIcon.getImage();
             Image resizedImage = image.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
             ImageIcon resizedIcon = new ImageIcon(resizedImage);
