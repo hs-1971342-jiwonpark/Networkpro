@@ -22,6 +22,7 @@ public class Bishop extends ChessPiece {
         this.pos = pos;
         this.possble= null;
     }
+    //뭐가 문제냐고
 
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
