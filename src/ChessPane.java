@@ -34,7 +34,14 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     }
 
 
-    private static void initializeSquares() {
+    private static void initializeSquares(JPanel parents) {
+
+    }
+
+    public ChessPane() {
+        setLayout(new GridLayout(DIMENSION, DIMENSION));
+        //initializeSquares(super);
+
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j] = new Square(i, j);
@@ -43,19 +50,9 @@ public class ChessPane extends JLayeredPane implements MouseListener {
                     grid[i][j].setBackground(Color.WHITE);
                 else
                     grid[i][j].setBackground(new Color(0xCCA63D));
-                grid[i][j].setVisible(true);
-            }
-        }
-    }
-
-    public ChessPane() {
-        setLayout(new GridLayout(DIMENSION, DIMENSION));
-        initializeSquares();
-
-        for (int i = 0; i < DIMENSION; i++) {
-            for (int j = 0; j < DIMENSION; j++) {
                 add(grid[i][j]);
                 grid[i][j].addMouseListener(this);
+                grid[i][j].setVisible(true);
             }
         }
 
@@ -98,6 +95,11 @@ public class ChessPane extends JLayeredPane implements MouseListener {
                     firstClick = true;
                     turn.add(grid);
                     this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
+                    for(int i=0;i<8;i++) {
+                        for (int j = 0; j < 8; j++) {
+                        }
+                    }
+                    System.out.println(turn.size());
                     break;
                 case 2://다른곳 클릭
 

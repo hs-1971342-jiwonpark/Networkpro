@@ -4,7 +4,6 @@ import javax.swing.*;
 enum Cor{
     black,
     white,
-
     none
 }
 public abstract class ChessPiece {

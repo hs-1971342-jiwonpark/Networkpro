@@ -12,8 +12,14 @@ import java.awt.event.MouseListener;
         protected boolean first_move = true;
 
         public void setImage() {
-            resizeImage(100,100);
-            setIcon(this.havePiece.pieceImg);  // 추가된 부분
+            ImageIcon originalIcon = this.havePiece.pieceImg;
+            Image image = originalIcon.getImage();
+            Image resizedImage = image.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            ImageIcon resizedIcon = new ImageIcon(resizedImage);
+
+            setIcon(resizedIcon);
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setVerticalAlignment(SwingConstants.CENTER);
         }
 
         public Square(int y, int x) {
