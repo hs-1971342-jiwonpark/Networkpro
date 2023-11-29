@@ -5,7 +5,7 @@ import java.util.Arrays;
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Bishop extends ChessPiece {
     private ChessPane chessPane;
-
+//메인 아껴
     Bishop(){
         this.name = "bishop";
     }
