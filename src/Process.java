@@ -124,6 +124,7 @@ public class Process {
         }
         //플레이어의 색이랑 말의 색이 다르면 리턴;
         else if(pane.getPlayerColor() != first.havePiece.color) {
+            System.out.println("플레이어 색 문제");
             System.out.println(first.havePiece.name);
             return 2;
         }
@@ -210,7 +211,7 @@ public class Process {
         }
         else if((second.getBackground() != Color.red)) return 2;
 
-
+        pane.saveTurn();
         //플레이어가 선택한 말의 종류에 따라 이동할 수 있는 말의 위치에 색을 바꿈.
         switch (this.first.havePiece.name){
             case "pawn":

@@ -12,6 +12,7 @@ public class StartFrame extends JFrame {
         // GridBagLayout 설정
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
+        ChessPane cp = ChessPane.getInstance();
 
         // ChessPane 설정
         gbc.gridx = 0; // 첫 번째 열
@@ -21,7 +22,7 @@ public class StartFrame extends JFrame {
         gbc.weightx = 0.75; // 가로 공간의 75% 차지
         gbc.weighty = 1.0; // 세로 공간의 100% 차지
         gbc.fill = GridBagConstraints.BOTH; // 가로 세로 모두 채우기
-        add(ChessPane.getInstance(), gbc);
+        add(cp, gbc);
 
         gbc.gridx = 2; // 세 번째 열
         gbc.gridwidth = 1; // 한 열 차지
@@ -37,10 +38,14 @@ public class StartFrame extends JFrame {
         jb.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
+
+                cp.reprint();
+
             }
         });
-        add(jb,gbc);
 
+        add(jb,gbc);
 
 
         setVisible(true);
