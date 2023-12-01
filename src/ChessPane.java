@@ -34,14 +34,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     }
 
 
-    private static void initializeSquares(JPanel parents) {
-
-    }
-    git push -f origin
-    public ChessPane() {
-        setLayout(new GridLayout(DIMENSION, DIMENSION));
-        //initializeSquares(super);
-
+    private void initializeSquares() {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j] = new Square(i, j);
@@ -55,6 +48,15 @@ public class ChessPane extends JLayeredPane implements MouseListener {
                 grid[i][j].setVisible(true);
             }
         }
+    }
+
+    private void repaintSquare(Square [][]grid){}
+    public ChessPane() {
+        setLayout(new GridLayout(DIMENSION, DIMENSION));
+        initializeSquares();
+
+
+
 
         // Pawn 클래스의 초기화를 ChessPane 이후에 진행
         new Pawn(Cor.white, this).initPos();

@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class StartFrame extends JFrame {
     StartFrame() {
@@ -26,6 +28,20 @@ public class StartFrame extends JFrame {
         gbc.weightx = 0.25; // 가로 공간의 25% 차지
         gbc.fill = GridBagConstraints.BOTH;
         add(new ChatPanel(), gbc);
+
+        gbc.gridx = 3; // 세 번째 열
+        gbc.gridwidth = 1; // 한 열 차지
+        gbc.weightx = 0.25; // 가로 공간의 25% 차지
+        gbc.fill = GridBagConstraints.BOTH;
+        JButton jb = new JButton("무르기");
+        jb.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
+        add(jb,gbc);
+
+
 
         setVisible(true);
     }

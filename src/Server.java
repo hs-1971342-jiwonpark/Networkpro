@@ -1,40 +1,29 @@
-
-
-
-//1971342 박지원
-
-
-
 import javax.swing.*;
-
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
-import java.io.EOFException;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.io.Serializable;
-
-
-
+import java.util.Vector;
 public class Server extends JFrame {
-
-
-
-
     private int port;
     private ServerSocket serverSocket;
+    private JTextField t_input = new JTextField();
     private JTextArea t_display = new JTextArea();
-    private JButton b_exit = new JButton("종료");
-    private OutputStream out;
-    private BufferedInputStream bin;
+    private JButton b_connect = new JButton("서버 시작");
+    private JButton b_disconnect = new JButton("서버 종료");
+    private JButton b_send = new JButton("보내기");
+    private JButton b_exit = new JButton("종료하기");
+
+    private Thread acceptThread = null;
+    private Vector<ClientHandler> users = new Vector<ClientHandler>();
     public Server(int port) {
-        super("1971342 박지원 객체의 전달 서버");
+        super("체스 서버");
         this.port = port;
         buildGUI();
         setLocation(400,0);
@@ -42,11 +31,23 @@ public class Server extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
-
+    JPanel createInputPanel() {
+        JPanel inputPanel = new JPanel();
+        JPanel southPanel = new JPanel();
+        southPanel.setLayout(new BorderLayout());
+        southPanel.add(createControlPanel(), BorderLayout.CENTER);
+        add(southPanel, BorderLayout.SOUTH);
+        return inputPanel;
+    }
     void buildGUI() {
+
+        b_send.setEnabled(false);
+        b_exit.setEnabled(true);
+        b_connect.setEnabled(true);
+        b_disconnect.setEnabled(false);
         setLayout(new BorderLayout());
         createDisplayPanel();
-        createControlPanel();
+        createInputPanel();
     }
 
     void createDisplayPanel() {
@@ -59,40 +60,71 @@ public class Server extends JFrame {
     }
 
 
-    void createControlPanel() {
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new BorderLayout());
-        inputPanel.add(b_exit,BorderLayout.CENTER);
-        add(inputPanel, BorderLayout.SOUTH);
+    JPanel createControlPanel() {
+        JPanel controlPanel = new JPanel();
+        controlPanel.setLayout(new GridLayout(1, 3));
+        controlPanel.add(b_connect);
+        controlPanel.add(b_disconnect);
+        controlPanel.add(b_exit);
+        b_connect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                acceptThread = new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        startServer();
+
+                    }
+
+                });
+                acceptThread.start();
+                b_exit.setEnabled(false);
+                b_connect.setEnabled(false);
+                b_disconnect.setEnabled(true);
+            }
+        });
+        b_disconnect.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+                disconnect();
+
+                b_send.setEnabled(false);
+                b_exit.setEnabled(true);
+                b_connect.setEnabled(true);
+                b_disconnect.setEnabled(false);
+            }
+        });
         b_exit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                printDisplay("종료");
-                try {
-                    if (serverSocket != null && !serverSocket.isClosed()) {
-                        serverSocket.close();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                } finally {
-                    System.exit(0);
-                }
+                System.exit(0);
             }
         });
-        inputPanel.setVisible(true);
+        return controlPanel;
+    }
+    void disconnect(){
+        try {
+            acceptThread = null;
+            serverSocket.close();
+
+        } catch (IOException e) {
+            printDisplay("접속 종료 오류발생\n");
+        }
     }
 
 
     void startServer() {
-        Socket clientSocket = null;
         try {
             serverSocket = new ServerSocket(port);
             printDisplay("서버가 시작되었습니다.\n");
-            while (true) {
-                clientSocket = serverSocket.accept();
+            while (acceptThread == Thread.currentThread()) {
                 printDisplay("클라이언트가 연결되었습니다.");
-                ClientHandler cHandler = new ClientHandler(clientSocket);
+                ClientHandler cHandler = new ClientHandler(serverSocket.accept());
                 cHandler.start();
+                users.add(cHandler);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -105,53 +137,103 @@ public class Server extends JFrame {
         t_display.setCaretPosition(t_display.getDocument().getLength());
     }
 
-    void receiveMessages(Socket socket) {
-        ObjectInputStream in = null;
-        try {
-            BufferedInputStream bin = new BufferedInputStream(socket.getInputStream());
-            in = new ObjectInputStream(bin);
-
-            Send message;
-            try {
-                while ((message = (Send) in.readObject()) != null) {
-                    printDisplay("클라이언트 메시지: " + message.getPos().x);
-                }
-            } catch (ClassNotFoundException e) {
-
-                e.printStackTrace();
-            }
-            printDisplay("클라이언트가 연결을 종료했습니다.");
-
-        } catch (EOFException e) {
-            printDisplay("클라이언트가 연결을 종료했습니다.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (in != null) in.close();
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 
 
     private class ClientHandler extends Thread{
+        private ObjectOutputStream out;
         private Socket clientSocket;
+        private String uid;
+        void sendMessage(String msg) throws IOException {
+            send(new Send(uid,Send.MODE_TX_STRING,msg));
+        }
+
+
+
+
+
         public ClientHandler(Socket clientSocket) {
-            this.clientSocket = clientSocket;
+            this.clientSocket  = clientSocket;
+            b_send.setEnabled(true);
+            t_input.setEnabled(true);
+        }
+
+        void receiveMessages(Socket socket) {
+            try {
+                //BufferedReader in =new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+                // out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
+                ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+                out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                String message;
+                // while ((message = in.readLine()) != null) {
+                Send msg;
+                while((msg = (Send)in.readObject())!=null) {
+
+
+                    if(msg.mode == Send.MODE_LOGIN) {
+                        uid = msg.userID;
+                        printDisplay("새 참가자 : "+uid);
+                        printDisplay("현재 참가자 수 : "+ users.size());
+                        continue;
+                    }
+                    else if(msg.mode == Send.MODE_LOGOUT) {
+                        break;
+                    }
+                    else if(msg.mode == Send.MODE_TX_STRING) {
+                        //message = uid + ": "+ message;
+                        message = uid + ": "+ msg.message;
+
+                        printDisplay(message);
+                        //broadcasting(message);
+                        broadcasting(msg);
+
+                    }
+                    else if (msg.mode == Send.MODE_TX_IMAGE) {
+                        printDisplay(uid+": "+msg.message);
+                        broadcasting(msg);
+                    }
+                }
+                users.removeElement(this);
+                printDisplay(uid + "퇴장. 현재 참가자 수: "+ users.size());
+
+
+            } catch (IOException e) {
+                printDisplay(e.getMessage());
+            } catch (ClassNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }finally {
+                try {
+                    socket.close();
+                    users.remove(this);
+                } catch (IOException e) {
+                    printDisplay(e.getMessage());
+                }
+            }
+        }
+        private void send(Send msg) {
+            try {
+                out.writeObject(msg);
+                out.flush();
+            } catch (IOException e) {
+                System.err.println("클라이언트 일반 전송 오류"+e.getMessage());
+            }
+        }
+
+        private void broadcasting(Send msg) {
+            for(ClientHandler c : users)
+                c.send(msg);
         }
 
         public void run() {
             receiveMessages(clientSocket);
         }
+
     }
 
 
     public static void main(String[] args) {
         Server sg =  new Server(54321);
-        sg.startServer();
+        //sg.startServer();
     }
 }
