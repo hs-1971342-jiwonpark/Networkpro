@@ -26,9 +26,6 @@ public class ChatPanel extends JPanel {
         private Socket clientSocket;
         private String uid;
 
-        void sendMessage(String msg) throws IOException {
-            send(new Send(uid, Send.MODE_TX_STRING, msg));
-        }
         public ClientHandler(Socket clientSocket) {
             this.clientSocket = clientSocket;
         }

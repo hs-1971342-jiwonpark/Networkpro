@@ -25,10 +25,6 @@ public class Process {
         private ObjectOutputStream out;
         private Socket clientSocket;
         private String uid;
-        void sendMessage(String msg) throws IOException {
-            send(new Send(uid,Send.MODE_TX_STRING,msg));
-        }
-
 
 
 

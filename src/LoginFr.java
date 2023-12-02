@@ -1,12 +1,25 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import javax.imageio.ImageIO;
 
 public class LoginFr extends JFrame {
-
-    LoginFr(){
+    String id;
+    String pw;
+    JPasswordField pwTextField = new JPasswordField(20);
+    JTextField idTextField = new JTextField(20);
+    private static String serverAddress;
+    private static int serverPort;
+    private Socket socket;
+    private ObjectOutputStream out;
+    private Thread receiveThread;
+    LoginFr(String serverAddress, int serverPort){
         super("Chess Game");
         setSize(800, 800); // 프레임 크기를 800x800으로 설정
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -14,13 +27,93 @@ public class LoginFr extends JFrame {
         setLocationRelativeTo(null); // 화면 가운데 정렬
         setVisible(true);
     }
+    void disconnect(String id, String pw){
+        send(new Send(id,pw,Send.MODE_LOGOUT));
+        try {
+            receiveThread=null;
+            socket.close();
 
+        } catch (IOException e) {
+            System.err.println("클라이언트 닫기 오류 " + e.getMessage());
+            System.exit(-1);
+        }
+    }
+    void sendMessage() {
+        this.id = idTextField.getText();
+        this.pw = pwTextField.getText();
+        if (id.equals("") ||pw.equals("") ) {
+            return;
+        }
+        send(new Send(id,pw,Send.MODE_LOGIN));
+    }
+    private void send(Send send) {
+        try {
+            out.writeObject(send);
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("클라이언트 일반 전송 오류"+e.getMessage());
+        }
+    }
+    private void checkedLogin(){
+            // 서버에 연결하는 로직 구현
+            try {
+                serverAddress = "localhost";
+                serverPort = 54321;
+                socket = new Socket();
+                SocketAddress sa = new InetSocketAddress(serverAddress, serverPort);
+                socket.connect(sa,3000);
+                out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                receiveThread = new Thread(new Runnable(){
+                    private ObjectInputStream in;
+                    void receiveMessage() {
+                        try {
+                            Send inMsg = (Send)in.readObject();
+                            while(inMsg == null) {  // 메시지를 계속 읽어 들임
+                                disconnect(id,pw);
+                                return;
+                            }
+                            if(inMsg.mode == Send.MODE_LOGIN){
+                                new StartFrame();
+                            }
+                            else{
+                                System.out.println("dd");
+                            }
+                        } catch(IOException e) {
+                            System.out.println(e.getMessage());
+                        } catch(ClassNotFoundException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                    @Override
+                    public void run() {
+                        try {
+                            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+                        }catch(IOException e) {
+                            System.out.println("입력 스트림이 열리지 않음");
+                        }
+                        while(receiveThread == Thread.currentThread()) {
+                            receiveMessage();
+                        }
+                    }
+                });
+                receiveThread.start();
+            }
+            catch (IOException e) {
+                socket = new Socket();
+                SocketAddress sa = new InetSocketAddress(serverAddress,serverPort);
+                try {
+                    socket.connect(sa,3000);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            sendMessage();
+    }
     private ImageIcon resizeImage(ImageIcon originalImage, int targetWidth, int targetHeight) {
         Image img = originalImage.getImage();
         Image resizedImg = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
         return new ImageIcon(resizedImg);
     }
-
     JPanel createPane (){
         JPanel mainPanel = new JPanel() {
             @Override
@@ -34,9 +127,7 @@ public class LoginFr extends JFrame {
                 }
             }
         };
-
         mainPanel.setLayout(new GridBagLayout()); // GridBagLayout 사용
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -50,7 +141,7 @@ public class LoginFr extends JFrame {
 
         // ID 텍스트 필드
         gbc.gridx++;
-        JTextField idTextField = new JTextField(20);
+        idTextField = new JTextField(20);
         idTextField.setPreferredSize(new Dimension(300, 40)); // 텍스트 필드 크기 설정
         mainPanel.add(idTextField, gbc);
 
@@ -63,7 +154,7 @@ public class LoginFr extends JFrame {
 
         // PW 텍스트 필드
         gbc.gridx++;
-        JPasswordField pwTextField = new JPasswordField(20);
+        pwTextField = new JPasswordField(20);
         pwTextField.setPreferredSize(new Dimension(300, 40)); // 텍스트 필드 크기 설정
         mainPanel.add(pwTextField, gbc);
 
@@ -92,14 +183,15 @@ public class LoginFr extends JFrame {
         enterButton.setOpaque(false); // 투명 설정
         enterButton.setContentAreaFilled(false); // 내용 영역 투명하게 설정
         enterButton.setBorderPainted(false); // 테두리 제거
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                checkedLogin();
+            }
+        });
         mainPanel.add(enterButton, gbc);
-
         return mainPanel;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new LoginFr();
-        });
-    }
+
 }

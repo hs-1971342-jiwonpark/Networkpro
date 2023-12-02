@@ -144,8 +144,9 @@ public class Server extends JFrame {
         private ObjectOutputStream out;
         private Socket clientSocket;
         private String uid;
+        private String upw;
         void sendMessage(String msg) throws IOException {
-            send(new Send(uid,Send.MODE_TX_STRING,msg));
+            send(new Send(uid,upw,Send.MODE_LOGIN));
         }
 
 
@@ -160,20 +161,19 @@ public class Server extends JFrame {
 
         void receiveMessages(Socket socket) {
             try {
-                //BufferedReader in =new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
-                // out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
                 ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
                 out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 String message;
-                // while ((message = in.readLine()) != null) {
                 Send msg;
                 while((msg = (Send)in.readObject())!=null) {
 
 
                     if(msg.mode == Send.MODE_LOGIN) {
                         uid = msg.userID;
+                        upw = msg.userPW;
                         printDisplay("새 참가자 : "+uid);
                         printDisplay("현재 참가자 수 : "+ users.size());
+                        broadcasting(msg);
                         continue;
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
