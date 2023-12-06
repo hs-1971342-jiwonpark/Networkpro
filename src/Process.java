@@ -235,6 +235,7 @@ public class Process {
                 new King(first.pos,second.havePiece.color, this.pane).Clear_Move_possible();
                 break;
         }
+
         return 1;
     }
 

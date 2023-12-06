@@ -128,7 +128,6 @@ public class ChessPane extends JLayeredPane implements MouseListener {
             switch (process.Check_second_click(ps)){
                 case 1://정상
                     firstClick = true;
-                    saveTurn();
                     this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
                     for(int i=0;i<8;i++) {
                         for (int j = 0; j < 8; j++) {
