@@ -26,7 +26,7 @@ public class Queen extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,4);
-        chessPane.grid[j][4].setPiece((ChessPiece)this);
+        chessPane.grid[j][3].setPiece((ChessPiece)this);
     }
 
 
