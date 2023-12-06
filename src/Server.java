@@ -180,11 +180,8 @@ public class Server extends JFrame {
                         break;
                     }
                     else if(msg.mode == Send.MODE_TX_STRING) {
-                        //message = uid + ": "+ message;
                         message = uid + ": "+ msg.message;
-
                         printDisplay(message);
-                        //broadcasting(message);
                         broadcasting(msg);
 
                     }
