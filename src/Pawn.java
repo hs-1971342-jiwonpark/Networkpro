@@ -114,14 +114,14 @@ public class Pawn extends ChessPiece {
             //그 전 상대의 움직임을 읽어와서 상대의 폰이 2칸 움직여
             // 내폰 옆에 왔을 경우 1리턴
 
-            Square[][] sqend = (Square[][]) chessPane.turn.elementAt(0);
-            Square[][] sqstart = (Square[][]) chessPane.turn.elementAt(1);
-            if(sqend[this.pos.y][ps.x].havePiece == null || sqstart[start][ps.x].havePiece == null) {
-
-                return false;
-            }
-            if(sqend[this.pos.y][ps.x].havePiece.equals(sqstart[start][ps.x].havePiece))
-                return true;
+//            Square[][] sqend = (Square[][]) chessPane.turn.elementAt(0);
+//            Square[][] sqstart = (Square[][]) chessPane.turn.elementAt(1);
+//            if(sqend[this.pos.y][ps.x].havePiece == null || sqstart[start][ps.x].havePiece == null) {
+//
+//                return false;
+//            }
+//            if(sqend[this.pos.y][ps.x].havePiece.equals(sqstart[start][ps.x].havePiece))
+//                return true;
             }
         return false;
     }

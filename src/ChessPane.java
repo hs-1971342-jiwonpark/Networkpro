@@ -9,7 +9,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     public static final int DIMENSION = 8;
     public static Square[][] grid = new Square[DIMENSION][DIMENSION];
 
-    public Vector<Square[][]> turn = new Vector<Square[][]>();
+    public Vector<ChessPiece[][]> turn = new Vector();
     private static ChessPane boardInstance = new ChessPane();
 
     public Process process;
@@ -50,6 +50,29 @@ public class ChessPane extends JLayeredPane implements MouseListener {
         }
     }
 
+    public void reprint(){
+        ChessPiece[][] cp = turn.lastElement();
+        turn.remove(turn.size()-1);
+
+        for (int i = 0; i < DIMENSION; i++) {
+            for (int j = 0; j < DIMENSION; j++) {
+                grid[i][j].setPiece(cp[i][j]);
+                if ((i + j) % 2 == 0) {
+                    grid[i][j].setBackground(Color.white);
+                }else {
+                    grid[i][j].setBackground(new Color(0xCCA63D));
+
+                }
+                //add(grid[i][j]);
+                grid[i][j].addMouseListener(this);
+                grid[i][j].setVisible(true);
+            }
+
+        }
+
+        setVisible(true);
+    }
+
     private void repaintSquare(Square [][]grid){}
     public ChessPane() {
         setLayout(new GridLayout(DIMENSION, DIMENSION));
@@ -71,31 +94,43 @@ public class ChessPane extends JLayeredPane implements MouseListener {
         new King(Cor.black, this).initPos();
         new Queen(Cor.white, this).initPos();
         new Queen(Cor.black, this).initPos();
-
+        saveTurn();
         process = new Process(this);
+    }
+
+    public void saveTurn(){
+        ChessPiece[][] newGrid = new ChessPiece[DIMENSION][DIMENSION];
+        for(int i =0; i< DIMENSION; i++){
+            for (int j=0; j< DIMENSION; j++){
+                newGrid[i][j]= grid[i][j].havePiece;
+            }
+        }
+        turn.add(newGrid);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         Pos ps = ((Square) e.getComponent()).pos;
             if(firstClick){
+                System.out.println("첫번째 클릭로직 ");
                 switch (process.Check_first_click(ps)){
                     case 1://정상
+                        System.out.println("첫번째 정상클릭");
                         firstClick = false;
                         break;
                     case 2://다른곳 클릭
-
+                        System.out.println("첫번째 다른곳 클릭");
                         break;
                     case 3://자신의 말 클릭
-
+                        System.out.println("첫번째 자신의 말 클릭");
                         break;
                 }
         }
         else {
+                System.out.println("두번째 클릭");
             switch (process.Check_second_click(ps)){
                 case 1://정상
                     firstClick = true;
-                    turn.add(grid);
                     this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
                     for(int i=0;i<8;i++) {
                         for (int j = 0; j < 8; j++) {
