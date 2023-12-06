@@ -12,8 +12,7 @@ import java.awt.event.MouseListener;
         protected boolean first_move = true;
 
         public void setImage() {
-            ImageIcon originalIcon = new ImageIcon((this.havePiece.color.toString())+"_"+this.havePiece.name+ ".png");
-            resizeImage(100, 100);
+            ImageIcon originalIcon = this.havePiece.pieceImg;
             Image image = originalIcon.getImage();
             Image resizedImage = image.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
             ImageIcon resizedIcon = new ImageIcon(resizedImage);
@@ -36,11 +35,14 @@ import java.awt.event.MouseListener;
 
         public void setPiece(ChessPiece cp){
             this.havePiece = cp;
-            setImage();
+            if(this.havePiece != null)
+                setImage();
+            else setIcon(null);
         }
         public void synchronization(){
 
         }
+
 
         private void resizeImage(int targetWidth, int targetHeight) {
             Image img = this.havePiece.pieceImg.getImage();

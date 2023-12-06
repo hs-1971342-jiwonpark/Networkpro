@@ -9,7 +9,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     public static final int DIMENSION = 8;
     public static Square[][] grid = new Square[DIMENSION][DIMENSION];
 
-    public Vector<Square[][]> turn = new Vector<Square[][]>();
+    public Vector<ChessPiece[][]> turn = new Vector<ChessPiece[][]>();
     private static ChessPane boardInstance = new ChessPane();
 
     public Process process;
@@ -34,13 +34,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     }
 
 
-    private static void initializeSquares(JPanel parents) {
-
-    }
-    public ChessPane() {
-        setLayout(new GridLayout(DIMENSION, DIMENSION));
-        //initializeSquares(super);
-
+    private void initializeSquares() {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j] = new Square(i, j);
@@ -54,6 +48,48 @@ public class ChessPane extends JLayeredPane implements MouseListener {
                 grid[i][j].setVisible(true);
             }
         }
+    }
+
+    public void reprint(){
+        if(turn.size()-1 <0) return;
+        firstClick =true;
+        ChessPiece[][] cp = turn.lastElement();
+        turn.remove(turn.size()-1);
+
+        for (int i = 0; i < DIMENSION; i++) {
+            for (int j = 0; j < DIMENSION; j++) {
+                grid[i][j].setPiece(cp[i][j]);
+                if ((i + j) % 2 == 0) {
+                    grid[i][j].setBackground(Color.white);
+                }else {
+                    grid[i][j].setBackground(new Color(0xCCA63D));
+
+                }
+                //add(grid[i][j]);
+                grid[i][j].addMouseListener(this);
+                grid[i][j].setVisible(true);
+            }
+
+        }
+
+        setVisible(true);
+    }
+
+    public void saveTurn(){
+        ChessPiece[][] newGrid = new ChessPiece[DIMENSION][DIMENSION];
+        for(int i =0; i< DIMENSION; i++){
+            for (int j=0; j< DIMENSION; j++){
+                newGrid[i][j]= grid[i][j].havePiece;
+            }
+        }
+        turn.add(newGrid);
+    }
+    public ChessPane() {
+        setLayout(new GridLayout(DIMENSION, DIMENSION));
+        initializeSquares();
+
+
+
 
         // Pawn 클래스의 초기화를 ChessPane 이후에 진행
         new Pawn(Cor.white, this).initPos();
@@ -68,7 +104,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
         new King(Cor.black, this).initPos();
         new Queen(Cor.white, this).initPos();
         new Queen(Cor.black, this).initPos();
-
+        saveTurn();
         process = new Process(this);
     }
 
@@ -92,21 +128,7 @@ public class ChessPane extends JLayeredPane implements MouseListener {
             switch (process.Check_second_click(ps)){
                 case 1://정상
                     firstClick = true;
-                    Square [][] a = new Square[DIMENSION][DIMENSION];
-                    for(int i=0; i< DIMENSION; i++){
-                        for(int j=0; j< DIMENSION; j++){
-                            a[i][j] = grid[i][j];
-                        }
-                    }
-                    for(int i=0; i < 8; i++){
-                        for(int j=0; j< 8; j++){
-                            if(a[i][j].havePiece != null) {
-                                a[i][j].setImage();
-                                System.out.println(a[i][j].havePiece.name);
-                            }
-                        }
-                    }
-                    turn.add(a);
+                    saveTurn();
                     this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
                     for(int i=0;i<8;i++) {
                         for (int j = 0; j < 8; j++) {

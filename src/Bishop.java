@@ -5,7 +5,7 @@ import java.util.Arrays;
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Bishop extends ChessPiece {
     private ChessPane chessPane;
-//메인 아껴
+
     Bishop(){
         this.name = "bishop";
     }
@@ -22,7 +22,6 @@ public class Bishop extends ChessPiece {
         this.pos = pos;
         this.possble= null;
     }
-    //뭐가 문제냐고
 
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
@@ -42,10 +41,6 @@ public class Bishop extends ChessPiece {
             chessPane.grid[this.pos.y][this.pos.x].setImage();
 
             //프로모션
-            if(this.pos.y == ((this.color == Cor.white)? 7 : 0)){
-                //프로모션 함수 호출
-                promotion();
-            }
         }
     }
     protected void Move_possible() {
@@ -162,38 +157,4 @@ public class Bishop extends ChessPiece {
         }
     }
 
-    //앙파상 가능여부
-    protected boolean isEn_Passant(Pos ps){
-        int start;
-        int end;
-        //색에 따라 기준선 달리정함
-        if(this.color == Cor.white){
-            end = 2;
-            start = 1;
-        }
-        else {
-            end = 5;
-            start = 6;
-        }
-
-        if(end == ps.y){
-            //그 전 상대의 움직임을 읽어와서 상대의 폰이 2칸 움직여
-            // 내폰 옆에 왔을 경우 1리턴
-
-            Square[][] sqend = (Square[][]) chessPane.turn.elementAt(0);
-            Square[][] sqstart = (Square[][]) chessPane.turn.elementAt(1);
-            if(sqend[this.pos.y][ps.x].havePiece == null || sqstart[start][ps.x].havePiece == null) {
-
-                return false;
-            }
-            if(sqend[this.pos.y][ps.x].havePiece.equals(sqstart[start][ps.x].havePiece))
-                return true;
-            }
-        return false;
-    }
-
-
-    public void promotion(){
-        
-    }
 }

@@ -43,6 +43,20 @@ public class Pawn extends ChessPiece {
             chessPane.grid[first.pos.y][first.pos.x].setIcon(null);
             chessPane.grid[this.pos.y][this.pos.x].setImage();
 
+            int moveY;
+            if(this.color == Cor.white) moveY = 3;
+            else moveY = 4;
+            System.out.println("지우기 코드 시작");
+            if(isEn_Passant(first.pos)==1){
+                System.out.println("왼쪽 코드 시작");
+                chessPane.grid[moveY][this.pos.x].havePiece = null;
+                chessPane.grid[moveY][this.pos.x].setIcon(null);
+            }
+            //오른쪽 앙파상
+            else if(isEn_Passant(first.pos)==2){
+                chessPane.grid[moveY][this.pos.x].havePiece = null;
+                chessPane.grid[moveY][this.pos.x].setIcon(null);
+            }
             //프로모션
             if(this.pos.y == ((this.color == Cor.white)? 7 : 0)){
                 //프로모션 함수 호출
@@ -76,12 +90,21 @@ public class Pawn extends ChessPiece {
                     if ((chessPane.grid[i.y][i.x].havePiece != null) &&
                             chessPane.playerColor != chessPane.grid[i.y][i.x].havePiece.color)
                         chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
-                    if(isEn_Passant(i)){
-                        chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
-        }
+                }
+                int moveY;
+                if(this.color == Cor.white) moveY = 2;
+                else moveY = 5;
+                //앙파상 + 색칠항 위치의 y축 리턴
+                if(isEn_Passant(this.pos)==1){
 
+
+                    chessPane.grid[moveY][this.pos.x-1].setBackground(Color.red);
+                }
+                //오른쪽 앙파상
+                else if(isEn_Passant(this.pos)==2){
+                    chessPane.grid[moveY][this.pos.x+1].setBackground(Color.red);
+                }
+        }
     }
 
     protected void Clear_Move_possible() {
@@ -97,33 +120,42 @@ public class Pawn extends ChessPiece {
     }
 
     //앙파상 가능여부
-    protected boolean isEn_Passant(Pos ps){
+    protected int isEn_Passant(Pos pos){
         int start;
         int end;
-        //색에 따라 기준선 달리정함
+        //색칠될 y축 계산
         if(this.color == Cor.white){
-            end = 2;
+            end = 3;
             start = 1;
         }
         else {
-            end = 5;
+            end = 4;
             start = 6;
         }
-
-        if(end == ps.y){
-            //그 전 상대의 움직임을 읽어와서 상대의 폰이 2칸 움직여
-            // 내폰 옆에 왔을 경우 1리턴
-
-            Square[][] sqend = (Square[][]) chessPane.turn.elementAt(0);
-            Square[][] sqstart = (Square[][]) chessPane.turn.elementAt(1);
-            if(sqend[this.pos.y][ps.x].havePiece == null || sqstart[start][ps.x].havePiece == null) {
-
-                return false;
+        if(pos.y != end) return 0;
+        ChessPiece[][] lastcp;
+        if(chessPane.turn.size()-2 <0) return 0;
+        lastcp = (ChessPiece[][])chessPane.turn.elementAt(chessPane.turn.size()-2);
+        //색에 따라 기준선 달리정함
+        //내가 선택한 폰이 대각선 움직일때, 배열범위 벗어나지 못하게
+        if(0<= this.pos.x-1){
+            //내가 마지막으로 움직였을때 기준,상대 폰이 시작지점에 있는지 위치 체크
+            if(chessPane.grid[pos.y][pos.x-1].havePiece!=null &&lastcp[start][pos.x-1]!=null ){
+                if((chessPane.grid[end][pos.x-1].havePiece.name).equals("pawn")&&(lastcp[start][pos.x-1].name).equals("pawn")) {
+                    return 1;
+                }
             }
-            if(sqend[this.pos.y][ps.x].havePiece.equals(sqstart[start][ps.x].havePiece))
-                return true;
+        }
+
+        //내가 선택한 폰이 대각선 움직일때, 배열범위 벗어나지 못하게
+        if(this.pos.x+1 <8){
+            if(chessPane.grid[pos.y][pos.x+1].havePiece!=null &&lastcp[start][pos.x+1]!=null ){
+                if((chessPane.grid[end][pos.x+1].havePiece.name).equals("pawn")&&(lastcp[start][pos.x+1].name).equals("pawn")) {
+                    return 2;
+                }
             }
-        return false;
+        }
+        return 0;
     }
 
 
