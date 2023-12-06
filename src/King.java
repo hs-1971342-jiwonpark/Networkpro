@@ -87,8 +87,9 @@ public class King extends ChessPiece {
             for (int j = 0; j < ChessPane.DIMENSION; j++) {
                 if ((i + j) % 2 == 0)
                     ChessPane.grid[i][j].setBackground(Color.WHITE);
-                else
+                else {
                     ChessPane.grid[i][j].setBackground(new Color(0xCCA63D));
+                }
             }
         }
     }
