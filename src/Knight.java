@@ -55,7 +55,7 @@ public class Knight extends ChessPiece {
                             chessPane.playerColor != chessPane.grid[i.y][i.x].havePiece.color)
                         || (chessPane.grid[i.y][i.x].havePiece == null))
                         chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
+        }
 
     }
 
