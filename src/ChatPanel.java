@@ -46,11 +46,9 @@ public class ChatPanel extends JPanel {
                     } else if (msg.mode == Send.MODE_LOGOUT) {
                         break;
                     } else if (msg.mode == Send.MODE_TX_STRING) {
-                        //message = uid + ": "+ message;
                         message = uid + ": " + msg.message;
 
                         System.out.println(message);
-                        //broadcasting(message);
                         broadcasting(msg);
 
                     } else if (msg.mode == Send.MODE_TX_IMAGE) {
