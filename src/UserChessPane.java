@@ -4,16 +4,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Vector;
 
 public class UserChessPane extends JLayeredPane implements MouseListener {
     public static final int DIMENSION = 8;
     public static Square[][] grid = new Square[DIMENSION][DIMENSION];
-    private ObjectOutputStream out;
-    public Vector<ChessPiece[][]> turn = new Vector<ChessPiece[][]>();
     private static UserChessPane boardInstance = new UserChessPane();
 
-    public Cor playerColor = Cor.white;
+    private ObjectOutputStream out;
+    private Cor playerColor = Cor.white;
 
     private boolean myTurn = false;
     public static UserChessPane getInstance() {
@@ -32,7 +30,7 @@ public class UserChessPane extends JLayeredPane implements MouseListener {
     private void initializeSquares() {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
-                grid[i][j] = new Square(new Pos(i,j));
+                grid[i][j] = new Square(i,j);
                 grid[i][j].setOpaque(true);
                 if ((i + j) % 2 == 0)
                     grid[i][j].setBackground(Color.WHITE);
@@ -75,7 +73,7 @@ public class UserChessPane extends JLayeredPane implements MouseListener {
     public void mouseClicked(MouseEvent e) {
         Pos ps = ((Square) e.getComponent()).pos;
         if(myTurn) {
-            send(new Send(ps));
+            send(new Send(ps, this.playerColor));
 
         }
     }
