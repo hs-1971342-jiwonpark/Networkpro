@@ -23,6 +23,7 @@ public class LoginFr extends JFrame {
     private ObjectInputStream in;
     LoginFr(String serverAddress, int serverPort){
         super("Chess Game");
+        connectToServer();
         setSize(800, 800); // 프레임 크기를 800x800으로 설정
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(createPane());
@@ -87,7 +88,6 @@ public class LoginFr extends JFrame {
                 }
             }
         };
-        connectToServer();
         mainPanel.setLayout(new GridBagLayout()); // GridBagLayout 사용
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
