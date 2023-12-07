@@ -12,6 +12,7 @@ public class Room extends JFrame {
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
+    int people = 0;
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;
@@ -19,7 +20,7 @@ public class Room extends JFrame {
     JLabel jb1;
     JPanel gridPanel;
     JLabel label[];
-
+    String roomName;
 
     void sendMessage() {
     }
@@ -115,7 +116,8 @@ public class Room extends JFrame {
 
 
 
-    public Room() {
+    public Room(String roomName) {
+        this.roomName = roomName;
 
         // 창의 제목 설정
         setTitle("Room with Grid and Chat Panel");
@@ -189,6 +191,6 @@ public class Room extends JFrame {
 
     public static void main(String[] args) {
         // Room 클래스의 인스턴스를 생성하여 창을 띄움
-        new Room();
+        new Room("1");
     }
 }

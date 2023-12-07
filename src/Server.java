@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Vector;
 public class Server extends JFrame {
     private int port;
@@ -20,6 +21,7 @@ public class Server extends JFrame {
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
 
+    private ArrayList<Room> rooms = new ArrayList<Room>();
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
     public Server(int port) {
@@ -40,7 +42,6 @@ public class Server extends JFrame {
         return inputPanel;
     }
     void buildGUI() {
-
         b_send.setEnabled(false);
         b_exit.setEnabled(true);
         b_connect.setEnabled(true);
@@ -149,6 +150,9 @@ public class Server extends JFrame {
             send(new Send(uid,upw,Send.MODE_LOGIN));
         }
 
+        String getUid(){
+            return uid;
+        }
 
 
 
@@ -166,24 +170,29 @@ public class Server extends JFrame {
                 String message;
                 Send msg;
                 while((msg = (Send)in.readObject())!=null) {
-
-
                     if(msg.mode == Send.MODE_LOGIN) {
                         uid = msg.userID;
                         upw = msg.userPW;
                         printDisplay("새 참가자 : "+uid);
                         printDisplay("현재 참가자 수 : "+ users.size());
-                        broadcasting(msg);
+                        sendAd(msg);
                         continue;
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
+                    }
+                    else if(msg.mode == Send.MODE_CT_ROOM){
+                        rooms.add(msg.roomNum,msg.room);
                     }
                     else if(msg.mode == Send.MODE_TX_STRING) {
                         message = uid + ": "+ msg.message;
                         printDisplay(message);
                         broadcasting(msg);
 
+                    }
+                    else if(msg.mode == Send.MODE_ENTER_ROOM){
+                        msg.setRoom(rooms.get(msg.selectIndex));
+                        sendAd(msg);
                     }
                     else if (msg.mode == Send.MODE_TX_IMAGE) {
                         printDisplay(uid+": "+msg.message);
@@ -207,6 +216,11 @@ public class Server extends JFrame {
                     printDisplay(e.getMessage());
                 }
             }
+        }
+        private void sendAd(Send msg){
+            for(ClientHandler c : users)
+                if(c.uid.equals(msg.userID))
+                    send(msg);
         }
         private void send(Send msg) {
             try {

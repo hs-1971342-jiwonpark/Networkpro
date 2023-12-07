@@ -8,12 +8,10 @@ public class StartFrame extends JFrame {
         super("온라인 체스 게임");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 1000);
-
         // GridBagLayout 설정
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         ChessPane cp = ChessPane.getInstance();
-
         // ChessPane 설정
         gbc.gridx = 0; // 첫 번째 열
         gbc.gridy = 0; // 첫 번째 행
@@ -38,10 +36,7 @@ public class StartFrame extends JFrame {
         jb.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-
                 cp.reprint();
-
             }
         });
 
