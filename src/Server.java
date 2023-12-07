@@ -13,6 +13,8 @@ import java.util.Vector;
 public class Server extends JFrame {
     private int port;
     private ServerSocket serverSocket;
+
+    private Process process;
     private JTextField t_input = new JTextField();
     private JTextArea t_display = new JTextArea();
     private JButton b_connect = new JButton("서버 시작");
@@ -25,6 +27,7 @@ public class Server extends JFrame {
     public Server(int port) {
         super("체스 서버");
         this.port = port;
+        this.process = new Process(ChessPane.getInstance());
         buildGUI();
         setLocation(400,0);
         setSize(400, 300);

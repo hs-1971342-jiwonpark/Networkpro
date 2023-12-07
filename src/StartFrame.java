@@ -2,8 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ObjectOutputStream;
 
 public class StartFrame extends JFrame {
+    ObjectOutputStream out;
     StartFrame() {
         super("온라인 체스 게임");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -12,7 +14,7 @@ public class StartFrame extends JFrame {
         // GridBagLayout 설정
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        ChessPane cp = ChessPane.getInstance();
+        UserChessPane cp = new UserChessPane();
 
         // ChessPane 설정
         gbc.gridx = 0; // 첫 번째 열
@@ -40,14 +42,16 @@ public class StartFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
 
-                cp.reprint();
+                cp.reprint(null);
 
             }
         });
-
         add(jb,gbc);
-
-
         setVisible(true);
+    }
+
+    StartFrame(ObjectOutputStream out){
+        this();
+        this.out = out;
     }
 }

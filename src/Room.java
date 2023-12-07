@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -8,8 +10,8 @@ import java.net.SocketAddress;
 public class Room extends JFrame {
     private static String serverAddress = "localhost";
     private static int serverPort = 54321;
-    private Socket socket;
-    private ObjectOutputStream out;
+    private Socket socket = null;
+    private ObjectOutputStream out =null;
     private Thread receiveThread;
     private ObjectInputStream in;
     JTextField chatField;
@@ -103,18 +105,6 @@ public class Room extends JFrame {
         Image resizedImg = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
         return new ImageIcon(resizedImg);
     }
-
-
-
-
-
-
-
-
-
-
-
-
     public Room() {
 
         // 창의 제목 설정
@@ -169,7 +159,13 @@ public class Room extends JFrame {
         sendButton = new JButton("Send");
         chatPanel.add(chatField, BorderLayout.CENTER);
         chatPanel.add(sendButton, BorderLayout.EAST);
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new StartFrame();
 
+            }
+        });
         // 패널들을 프레임에 추가
         add(gridPanel, BorderLayout.CENTER);
         add(chatPanel, BorderLayout.SOUTH);
