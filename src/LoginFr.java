@@ -148,21 +148,29 @@ public class LoginFr extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 checkedLogin();
-                try {
-                    in = new ObjectInputStream(socket.getInputStream());
-                    Send inMsg;
-                    while ((inMsg = (Send)in.readObject())!=null) {
-                        if (inMsg.mode == Send.MODE_LOGIN) {
-                            System.out.println(inMsg.userID);
-                            System.out.println(inMsg.mode);
-                            new RoomList(socket);
-                        } else {
-                            System.out.println("r");
+                Thread thread = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            in = new ObjectInputStream(socket.getInputStream());
+                            Send inMsg;
+                            while ((inMsg = (Send) in.readObject()) != null) {
+                                if (inMsg.mode == Send.MODE_LOGIN) {
+                                    System.out.println(inMsg.userID);
+                                    System.out.println(inMsg.mode);
+                                    new RoomList(socket,in,out);
+                                    dispose();
+                                } else {
+                                    System.out.println("r");
+                                }
+                            }
+                        } catch (IOException |
+                                 ClassNotFoundException e1) {
+                            System.out.println("e1.getMessage()");
                         }
                     }
-                } catch(IOException | ClassNotFoundException e1) {
-                    System.out.println(e1.getMessage());
-                }
+
+                });
+                thread.start();
             }
         });
 

@@ -146,16 +146,10 @@ public class Server extends JFrame {
         private Socket clientSocket;
         private String uid;
         private String upw;
-        void sendMessage(String msg) throws IOException {
-            send(new Send(uid,upw,Send.MODE_LOGIN));
-        }
 
         String getUid(){
             return uid;
         }
-
-
-
 
         public ClientHandler(Socket clientSocket) {
             this.clientSocket  = clientSocket;
@@ -183,6 +177,7 @@ public class Server extends JFrame {
                     }
                     else if(msg.mode == Send.MODE_CT_ROOM){
                         rooms.add(msg.roomNum,msg.room);
+                        broadcasting(msg);
                     }
                     else if(msg.mode == Send.MODE_TX_STRING) {
                         message = uid + ": "+ msg.message;
@@ -193,6 +188,10 @@ public class Server extends JFrame {
                     else if(msg.mode == Send.MODE_ENTER_ROOM){
                         msg.setRoom(rooms.get(msg.selectIndex));
                         sendAd(msg);
+                    }
+                    else if (msg.mode == Send.MODE_TX_IMAGE) {
+                        printDisplay(uid+": "+msg.message);
+                        broadcasting(msg);
                     }
                     else if (msg.mode == Send.MODE_TX_IMAGE) {
                         printDisplay(uid+": "+msg.message);

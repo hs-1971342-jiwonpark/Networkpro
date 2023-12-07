@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Vector;
 
 public class Room extends JFrame {
     private static String serverAddress = "localhost";
@@ -13,6 +14,7 @@ public class Room extends JFrame {
     private Thread receiveThread;
     private ObjectInputStream in;
     int people = 0;
+    Vector<String> id = new Vector<>();
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;

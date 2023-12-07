@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Vector;
 
 public class Send implements Serializable {
     public static final int DIMENSION = 8;
@@ -14,6 +15,7 @@ public class Send implements Serializable {
     public final static int MODE_CT_ROOM = 0x80;
     public final static int MODE_ENTER_ROOM = 0x16;
     public final static int MODE_REMOVE_ROOM = 0x32;
+    public final static int MODE_IN_ROOM = 0x64;
     private Pos pos;
     String userPW;
     private int sendType;
@@ -23,6 +25,7 @@ public class Send implements Serializable {
     ImageIcon image;
     long size;
     String roomName;
+    Vector<String> roomList;
     int roomNum;
     Room room;
     int selectIndex;
@@ -34,7 +37,8 @@ public class Send implements Serializable {
         this.userID = userID;
         this.mode = code;
     }
-    public Send(Room room,String roomName, int roomNum, int code){
+    public Send(String id,Room room,String roomName, int roomNum, int code){
+        this.userID =id;
         this.room = room;
         this.roomName = roomName;
         this.roomNum = roomNum;
@@ -54,6 +58,10 @@ public class Send implements Serializable {
         this.grid = set;
         this.sendType = 2;
 
+    }
+    public Send(Vector<String> roomNames, int code){
+        this.mode = code;
+        this.roomList = roomNames;
     }
     public Send(String id,int selectedIndex,int code){
         this.userID = id;
