@@ -48,7 +48,7 @@ public class RoomList {
                                     listModel.addElement(inMsg.roomName);
                                     break;
                                 case Send.MODE_ENTER_ROOM:
-
+                                    new Room(inMsg.room,socket);
                                     break;
                                 case Send.MODE_REMOVE_ROOM:
                                     if(inMsg.dodelete == true) {
@@ -155,8 +155,8 @@ public class RoomList {
                 if (select > -1) {
                     select = listModel.size()-select;
                     send(new Send(id, select, Send.MODE_ENTER_ROOM)); // 사용자아이디, 선택, 들어가기모드코드
-                    new Room(listModel.get(select));
-                    System.out.println(listModel.get(select));
+
+                    //System.out.println(listModel.get(select));
                 }
             }
         });

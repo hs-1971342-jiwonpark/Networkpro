@@ -151,6 +151,8 @@ public class Server extends JFrame {
         private String uid;
         private String upw;
 
+        private Room room = null;
+
         String getUid(){
             return uid;
         }
@@ -169,7 +171,7 @@ public class Server extends JFrame {
                 Send msg;
                 while((msg = (Send)in.readObject())!=null) {
                     System.out.println(msg.mode);
-                    if(msg.mode == Send.MODE_LOGIN) {
+                    if(msg.mode == Send.MODE_LOGIN) {//로그인
                         uid = msg.userID;
                         upw = msg.userPW;
                         printDisplay("새 참가자 : "+uid);
@@ -191,10 +193,13 @@ public class Server extends JFrame {
 
                     }
                     else if(msg.mode == Send.MODE_ENTER_ROOM){
+                        //룸 참가?
                         msg.setRoom(rooms.get(msg.selectIndex));
+                        this.room = msg.room;
                         sendAd(msg);
                     }
-                    else if (msg.mode == Send.MODE_REMOVE_ROOM) {
+                    else if (msg.mode == Send.MODE_REMOVE_ROOM) {//룸 제거
+                        //코드 문제 있음
                         if(msg.userID.equals(rooms.get(msg.selectIndex).host)) {
                             rooms.remove(msg.selectIndex);
                             msg.dodelete = true;
@@ -205,13 +210,36 @@ public class Server extends JFrame {
                         }
                         printDisplay(uid+": "+msg.message);
                     }
-                    else if (msg.mode == Send.MODE_IN_ROOM) {
-                        printDisplay("tqtqtqtqtqtqtqt");
+                    else if (msg.mode == Send.MODE_IN_ROOM) {//로그인 한 후 룸리스트 들어가면.
                         for(int i=0; i< rooms.size(); i++){
                             rooms1.add(rooms.get(i).roomName);
-                            printDisplay("tqtqtqtqtqtq");
                         }
                         send(new Send(rooms1, Send.MODE_IN_ROOM));
+
+                    } else if (msg.mode == Send.MODE_TX_POS) {
+                        if(msg.isFirstClick && msg.cor == process.pane.playerColor){
+                            if(process.Check_first_click(msg.getPos())==1){
+                                send((new Send(process.colors,Send.MODE_TX_BACKGROUND)));
+                            }
+                        }
+                        else if(!msg.isFirstClick && msg.cor == process.pane.playerColor){
+                            int returnValue = process.Check_second_click(msg.getPos());
+                            if(returnValue ==1){
+                                broadcasting((new Send(process.pane.turn.lastElement(),process.colors,Send.MODE_TX_ChessPiece)));
+                                process.pane.playerColor = (process.pane.playerColor == Cor.white)? Cor.black: Cor.white;
+                            } else if (returnValue==2) {
+                                //잘못된 것을 누르면 아무것도 안함
+                            }  else if (returnValue==3) {
+                                //자기 자신의 말을 누르면
+                                //여기 문제가 생길 수도 있음.\
+                                System.out.println("두번째 클릭에서 같은 색 눌러서 return에 문제 ㄱㄴ");
+                                send((new Send(process.colors,Send.MODE_TX_BACKGROUND)));
+                            }
+                        }
+
+                    } else if (msg.mode == Send.MODE_CLOSE_ROOM) {
+                        this.room = null;
+                        printDisplay(this.room.toString());
                     }
                 }
                 users.removeElement(this);

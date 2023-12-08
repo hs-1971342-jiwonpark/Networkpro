@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Vector;
 
-public class Room extends JFrame {
+public class Room extends JFrame implements Serializable{
     private static String serverAddress = "localhost";
     private static int serverPort = 54321;
     private Socket socket;
@@ -106,7 +106,7 @@ public class Room extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                System.out.println("창닫는 이벤트");
+                send(new Send(Send.MODE_CLOSE_ROOM));
                 dispose();
             }
         });
@@ -115,6 +115,12 @@ public class Room extends JFrame {
     public Room(String roomName, String host){
         this(roomName);
         this.host = host;
+    }
+
+    public Room(Room room, Socket socket){
+        this(room.roomName, room.host);;
+        this.id = room.id;
+        this.socket = socket;
     }
     public static void main(String[] args) {
         // Room 클래스의 인스턴스를 생성하여 창을 띄움

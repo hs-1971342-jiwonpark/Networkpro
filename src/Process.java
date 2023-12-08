@@ -18,74 +18,9 @@ public class Process {
     private int port;
     private ServerSocket serverSocket;
     private Thread acceptThread = null;
-    private Vector<ClientHandler> users = new Vector<ClientHandler>();
-
-
-    private class ClientHandler extends Thread{
-        private ObjectOutputStream out;
-        private Socket clientSocket;
-        private String uid;
-
-
-
-
-        public ClientHandler(Socket clientSocket) {
-            this.clientSocket  = clientSocket;
-        }
-
-        void receiveMessages(Socket socket) {
-            try {
-                ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-                String message;
-                Send msg;
-                while((msg = (Send)in.readObject())!=null) {
-                    if(msg.mode == Send.MODE_LOGIN) {
-                        uid = msg.userID;
-                        System.out.println("새 참가자 : "+uid);
-                        System.out.println("현재 참가자 수 : "+ users.size());
-                    }
-                }
-                users.removeElement(this);
-                System.out.println(uid + "퇴장. 현재 참가자 수: "+ users.size());
-
-
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            } catch (ClassNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }finally {
-                try {
-                    socket.close();
-                    users.remove(this);
-                } catch (IOException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-        }
-        private void send(Send msg) {
-            try {
-                out.writeObject(msg);
-                out.flush();
-            } catch (IOException e) {
-                System.err.println("클라이언트 일반 전송 오류"+e.getMessage());
-            }
-        }
-
-        private void broadcasting(Send msg) {
-            for(ClientHandler c : users)
-                c.send(msg);
-        }
-
-        public void run() {
-            receiveMessages(clientSocket);
-        }
-
-    }
-
     Square first = null;
     Square second = null;
+    Color[][] colors = new Color[][]{};
     public Process(){
 
     }
@@ -132,6 +67,11 @@ public class Process {
                 new King(first.pos,first.havePiece.color, this.pane).Move_possible();
                 break;
         }
+        for(int i=0; i< 8; i++){
+            for(int j=0; j< 8; j++){
+                colors[i][j] = pane.grid[i][j].getBackground();
+            }
+        }
         return 1;
         // 보내야함
     }
@@ -169,6 +109,12 @@ public class Process {
             this.Check_first_click(pos);
             return 3;
         }
+
+
+
+
+
+
         else if((second.getBackground() != Color.red)) return 2;
 
         pane.saveTurn();
@@ -199,7 +145,16 @@ public class Process {
                 new King(first.pos,second.havePiece.color, this.pane).Clear_Move_possible();
                 break;
         }
+        for(int i=0; i< 8; i++){
+            for(int j=0; j< 8; j++){
+                if ((i + j) % 2 == 0) {
+                    colors[i][j] = Color.white;
+                }else {
+                    colors[i][j] =(new Color(0xCCA63D));
 
+                }
+            }
+        }
         return 1;
     }
 

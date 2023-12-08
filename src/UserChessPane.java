@@ -55,15 +55,11 @@ public class UserChessPane extends JLayeredPane {
             }
         }
     }
-    public void reprint(ChessPiece[][] cp){
+    public void reprint(ChessPiece[][] cp, Color[][] colors){
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j].setPiece(cp[i][j]);
-                if ((i + j) % 2 == 0) {
-                    grid[i][j].setBackground(Color.white);
-                }else {
-                    grid[i][j].setBackground(new Color(0xCCA63D));
-                }
+                grid[i][j].setBackground(colors[i][j]);
             }
         }
     }

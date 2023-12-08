@@ -47,10 +47,17 @@ public class ChessPane extends JLayeredPane implements MouseListener {
 
     public void reprint(){
         if(turn.size()-1 <0) return;
-        firstClick =true;
-        ChessPiece[][] cp = turn.lastElement();
-        turn.remove(turn.size()-1);
-
+        //자신의 턴을 계산하기 위해 나머지 연산
+        int num = (this.playerColor == Cor.white)? 0:1;
+        ChessPiece[][] cp;
+        //일단 무르기 한번하고
+        cp = turn.lastElement();
+        turn.remove(turn.size() - 1);
+        //한번 헀을 때 현제 턴이 자신의 턴과 같지 않다면 다시
+        if((turn.size()-1)%2==num) {
+            cp = turn.lastElement();
+            turn.remove(turn.size() - 1);
+        }
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j].setPiece(cp[i][j]);
