@@ -52,7 +52,7 @@ public class RoomList {
                                     break;
                                 case Send.MODE_REMOVE_ROOM:
                                     if(inMsg.dodelete == true) {
-                                        listModel.remove(inMsg.selectIndex);
+                                        listModel.remove(listModel.size()-inMsg.selectIndex);
                                     }
 
                                     break;
@@ -140,7 +140,7 @@ public class RoomList {
 
                         Room room = new Room(roomName, id);
                         System.out.println(Send.MODE_CT_ROOM);
-                        send(new Send(id, room,roomName, roomNum, Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
+                        send(new Send(id, room,roomName, listModel.size(), Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
                     }
                 }
             }
