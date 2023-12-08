@@ -24,6 +24,7 @@ public class Server extends JFrame {
     private JButton b_exit = new JButton("종료하기");
 
     private ArrayList<Room> rooms = new ArrayList<Room>();
+    private Vector<String> rooms1 = new Vector<String>();
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
     public Server(int port) {
@@ -167,12 +168,13 @@ public class Server extends JFrame {
                 String message;
                 Send msg;
                 while((msg = (Send)in.readObject())!=null) {
+                    System.out.println(msg.mode);
                     if(msg.mode == Send.MODE_LOGIN) {
                         uid = msg.userID;
                         upw = msg.userPW;
                         printDisplay("새 참가자 : "+uid);
                         printDisplay("현재 참가자 수 : "+ users.size());
-                        sendAd(msg);
+                        send(msg);
                         continue;
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
@@ -196,9 +198,13 @@ public class Server extends JFrame {
                         printDisplay(uid+": "+msg.message);
                         broadcasting(msg);
                     }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
+                    else if (msg.mode == Send.MODE_IN_ROOM) {
+                        printDisplay("tqtqtqtqtqtqtqt");
+                        for(int i=0; i< rooms.size(); i++){
+                            rooms1.add(rooms.get(i).roomName);
+                            printDisplay("tqtqtqtqtqtq");
+                        }
+                        send(new Send(rooms1, Send.MODE_IN_ROOM));
                     }
                 }
                 users.removeElement(this);
@@ -221,8 +227,9 @@ public class Server extends JFrame {
         }
         private void sendAd(Send msg){
             for(ClientHandler c : users)
-                if(c.uid.equals(msg.userID))
+                if(c.uid.equals(msg.userID)) {
                     send(msg);
+                }
         }
         private void send(Send msg) {
             try {

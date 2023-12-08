@@ -45,19 +45,6 @@ public class Process {
                         System.out.println("새 참가자 : "+uid);
                         System.out.println("현재 참가자 수 : "+ users.size());
                     }
-                    else if(msg.mode == Send.MODE_LOGOUT) {
-                        break;
-                    }
-                    else if(msg.mode == Send.MODE_TX_STRING) {
-                        message = uid + ": "+ msg.message;
-
-                        System.out.println(message);
-                        broadcasting(msg);
-
-                    }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        broadcasting(msg);
-                    }
                 }
                 users.removeElement(this);
                 System.out.println(uid + "퇴장. 현재 참가자 수: "+ users.size());
@@ -150,30 +137,7 @@ public class Process {
     }
     public int Check_second_click(Pos pos){
         //리턴 값에 따라서 클릭 다시 받아야함.
-        try {
-            socket = new Socket(serverAddress,serverPort);
-            out = new ObjectOutputStream(socket.getOutputStream());
-        } catch (UnknownHostException e) {
-            System.err.println("알 수 없는 서버" + e);
-            exit(0);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Pos message = pos;
-        Send sd = new Send(message);
 
-        try {
-            if(sd == null) {
-                System.out.println("널");
-            }
-            out.writeObject(sd);
-            System.out.println(sd.getPos().x);
-            out.flush();
-        } catch (NumberFormatException e) {
-            System.out.println("ㅋ");
-        } catch (IOException e) {
-            System.out.println(e.toString());
-        }
         //좌표가 문제 있으면 리턴
         if(!pos.check_Pos()) return 2;
         //받은 좌표의 Square와 sq 연동

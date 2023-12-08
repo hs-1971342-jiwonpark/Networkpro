@@ -188,7 +188,7 @@ public class Room extends JFrame {
         setVisible(true);
 
         // 창을 닫았을 때 프로그램이 종료되도록 설정
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
     public static void main(String[] args) {

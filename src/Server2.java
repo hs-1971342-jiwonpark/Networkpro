@@ -190,21 +190,7 @@ public class Server2 extends JFrame {
                         printDisplay(uid+": "+msg.message);
                         broadcasting(msg);
                     }
-                    else if (msg.mode == Send.MODE_TX_POS) {
-                        printDisplay(uid+": "+msg.getPos().y + " " + msg.getPos().x);
-                        cp.playerColor = msg.getColor();
-                        if(process.Check_first_click(msg.getPos())==1){
-                             //0이면 화이트 1이면 블랙
-                             if((cp.turn.size()-1)/2 ==0){
-                                //화이트에게만 전송
-                             }
-                             else{
-                                 //블랙에게 전송
-                             }
-                        }
-                        //여기에서 체스 움직임 처리
-                        broadcasting(msg);
-                    }
+
                 }
                 users.removeElement(this);
                 printDisplay(uid + "퇴장. 현재 참가자 수: "+ users.size());

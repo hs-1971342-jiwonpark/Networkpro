@@ -3,13 +3,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.Vector;
+
 
 public class RoomList {
 
@@ -24,13 +20,15 @@ public class RoomList {
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
-    static private Vector<String> roomList = new Vector<>();
+    static private Vector<String> roomList = null;
 
     DefaultListModel<String> listModel;
     JList<String> roomLists;
     JScrollPane scrollPane;
     JLabel statusBar;
     private void send(Send msg) {
+        System.out.println("보낸거 맞아?");
+        System.out.println(msg.mode);
         try {
             out.writeObject(msg);
             out.flush();
@@ -46,7 +44,8 @@ public class RoomList {
                 void receiveMessage() {
                     try {
                         Send inMsg = (Send) in.readObject();
-                        while (inMsg != null) {  // 메시지를 계속 읽어 들임
+                        System.out.println("ㅅㅂ");
+                        if (inMsg != null) {  // 메시지를 계속 읽어 들임
                             switch (inMsg.mode) {
                                 case Send.MODE_CT_ROOM:
                                     listModel.addElement(inMsg.roomName);
@@ -58,10 +57,11 @@ public class RoomList {
 
                                     break;
                                 case Send.MODE_IN_ROOM:
-                                    roomList = inMsg.roomList;
-                                    for (String name : roomList) {
-                                        listModel.addElement(name);
-                                    }
+                                    if(inMsg.roomList.size() > 0)
+                                        for (int i=0; i < inMsg.roomList.size(); i++) {
+                                            String name = inMsg.roomList.get(i);
+                                            listModel.addElement(name);
+                                        }
                                     break;
                             }
                         }
@@ -80,18 +80,19 @@ public class RoomList {
                 }
             });
             receiveThread.start();
+
         }
 
 
 
 
-    RoomList(Socket socket,ObjectInputStream in,ObjectOutputStream out) {
+    RoomList(Socket socket,ObjectInputStream in,ObjectOutputStream out, String id, String pw) {
         this.out = out;
         this.in = in;
         this.socket = socket;
-        connectToServer();
+        this.id = id;
+        this.pw = pw;
         System.out.println(socket);
-        send(new Send(id,pw,Send.MODE_IN_ROOM));
         JFrame frame = new JFrame("Game Lobby");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
@@ -111,7 +112,7 @@ public class RoomList {
         panel.add(scrollPane, BorderLayout.CENTER);
         statusBar = new JLabel("Status: Connected");
         panel.add(statusBar, BorderLayout.SOUTH);
-
+        //룸 생성
         add.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -128,16 +129,20 @@ public class RoomList {
                 if (result == JOptionPane.OK_OPTION) {
                     String roomName = roomNameField.getText().trim();
                     if (!roomName.isEmpty()) {
+
                         Room room = new Room(roomName);
+                        System.out.println(Send.MODE_CT_ROOM);
                         send(new Send(id, room,roomName, roomNum, Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
                     }
                 }
             }
         });
+        //룸 참가
         ok.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 select = roomLists.getSelectedIndex();
+                System.out.println(select);
                 if (select > -1)
                     send(new Send(id, select, Send.MODE_ENTER_ROOM)); // 사용자아이디, 선택, 들어가기모드코드
                 new Room(listModel.get(select));
@@ -179,6 +184,10 @@ public class RoomList {
         });
         frame.setContentPane(panel);
         frame.setVisible(true);
+
+        connectToServer();
+        send(new Send(id,pw,Send.MODE_IN_ROOM));
+
     }
 
 }
