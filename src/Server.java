@@ -194,9 +194,16 @@ public class Server extends JFrame {
                         msg.setRoom(rooms.get(msg.selectIndex));
                         sendAd(msg);
                     }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
+                    else if (msg.mode == Send.MODE_REMOVE_ROOM) {
+                        if(msg.userID.equals(rooms.get(msg.selectIndex).host)) {
+                            rooms.remove(msg.selectIndex);
+                            msg.dodelete = true;
+                            broadcasting(msg);
+                        }
+                        else {
+                            send(msg);
+                        }
                         printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
                     }
                     else if (msg.mode == Send.MODE_IN_ROOM) {
                         printDisplay("tqtqtqtqtqtqtqt");

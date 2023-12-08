@@ -30,6 +30,7 @@ public class Send implements Serializable {
     int roomNum;
     Room room;
     int selectIndex;
+    boolean dodelete = false;
     void setName(String name){
         this.userID = name;
     }

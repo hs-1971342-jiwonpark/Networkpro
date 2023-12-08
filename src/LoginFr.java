@@ -17,13 +17,12 @@ public class LoginFr extends JFrame {
     JTextField idTextField = new JTextField(20);
     private static String serverAddress; //서버주소
     private static int serverPort; //포트번호
-    private Socket socket; //소켓
-    private ObjectOutputStream out;
+    private Socket socket = null; //소켓
+    private ObjectOutputStream out =null;
     private Thread receiveThread;
     private ObjectInputStream in;
     LoginFr(String serverAddress, int serverPort){
         super("Chess Game");
-        connectToServer();
         setSize(800, 800); // 프레임 크기를 800x800으로 설정
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(createPane());
@@ -42,6 +41,7 @@ public class LoginFr extends JFrame {
     }
     private void send(Send send) {
         try {
+            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             out.writeObject(send);
             out.flush();
         } catch (IOException e) {
@@ -56,12 +56,11 @@ public class LoginFr extends JFrame {
             socket = new Socket();
             SocketAddress sa = new InetSocketAddress(serverAddress, serverPort);
             socket.connect(sa, 3000);
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         }catch (UnknownHostException e) {
             System.err.println("알 수 없는 서버> " + e.getMessage());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            System.err.println("클라이언트 연결 오류> " + e.getMessage());
+            this.socket =null;
+            JOptionPane.showConfirmDialog(this, "서버가 열리지 않았습니다.", "서버 오류", JOptionPane.OK_CANCEL_OPTION);
         }
     }
 
@@ -71,7 +70,9 @@ public class LoginFr extends JFrame {
         if (id.equals("") ||pw.equals("") ) {
             return;
         }
-        send(new Send(id,pw,Send.MODE_LOGIN));
+        connectToServer();
+        if(this.socket !=null)
+            send(new Send(id,pw,Send.MODE_LOGIN));
     }
 
 
@@ -148,6 +149,8 @@ public class LoginFr extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 checkedLogin();
+                if(socket == null)
+                    return;
                 Thread thread = new Thread(new Runnable() {
                     public void run() {
                         try {
@@ -175,22 +178,10 @@ public class LoginFr extends JFrame {
                 thread.start();
             }
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
         mainPanel.add(enterButton, gbc);
         return mainPanel;
     }
+
 
 
 }

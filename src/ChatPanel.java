@@ -129,7 +129,9 @@ public class ChatPanel extends JPanel {
 
 
             add(inputPanel, BorderLayout.SOUTH);
-        }
+
+        setVisible(true);
+    }
 
         private void sendChatMessage() {
             String message = inputField.getText().trim();

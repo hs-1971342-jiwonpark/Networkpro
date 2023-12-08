@@ -27,8 +27,6 @@ public class RoomList {
     JScrollPane scrollPane;
     JLabel statusBar;
     private void send(Send msg) {
-        System.out.println("보낸거 맞아?");
-        System.out.println(msg.mode);
         try {
             out.writeObject(msg);
             out.flush();
@@ -44,7 +42,6 @@ public class RoomList {
                 void receiveMessage() {
                     try {
                         Send inMsg = (Send) in.readObject();
-                        System.out.println("ㅅㅂ");
                         if (inMsg != null) {  // 메시지를 계속 읽어 들임
                             switch (inMsg.mode) {
                                 case Send.MODE_CT_ROOM:
@@ -54,6 +51,9 @@ public class RoomList {
 
                                     break;
                                 case Send.MODE_REMOVE_ROOM:
+                                    if(inMsg.dodelete == true) {
+                                        listModel.remove(inMsg.selectIndex);
+                                    }
 
                                     break;
                                 case Send.MODE_IN_ROOM:
@@ -66,7 +66,6 @@ public class RoomList {
                             }
                         }
                     } catch (IOException e) {
-                        System.out.println("연결을 종료했습니다.");
                     } catch (ClassNotFoundException e) {
                         System.out.println("잘못된 객체가 전달되었습니다.");
                     }
@@ -93,6 +92,14 @@ public class RoomList {
         this.id = id;
         this.pw = pw;
         System.out.println(socket);
+        RoomlistGUI();
+
+        connectToServer();
+        send(new Send(id,pw,Send.MODE_IN_ROOM));
+
+    }
+
+    private void RoomlistGUI(){
         JFrame frame = new JFrame("Game Lobby");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
@@ -112,6 +119,7 @@ public class RoomList {
         panel.add(scrollPane, BorderLayout.CENTER);
         statusBar = new JLabel("Status: Connected");
         panel.add(statusBar, BorderLayout.SOUTH);
+
         //룸 생성
         add.addActionListener(new ActionListener() {
             @Override
@@ -130,64 +138,42 @@ public class RoomList {
                     String roomName = roomNameField.getText().trim();
                     if (!roomName.isEmpty()) {
 
-                        Room room = new Room(roomName);
+                        Room room = new Room(roomName, id);
                         System.out.println(Send.MODE_CT_ROOM);
                         send(new Send(id, room,roomName, roomNum, Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
                     }
                 }
             }
         });
+
         //룸 참가
         ok.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                select = roomLists.getSelectedIndex();
+
                 System.out.println(select);
-                if (select > -1)
+                if (select > -1) {
+                    select = listModel.size()-select;
                     send(new Send(id, select, Send.MODE_ENTER_ROOM)); // 사용자아이디, 선택, 들어가기모드코드
-                new Room(listModel.get(select));
-                System.out.println(listModel.get(select));
-            }
-        });
-        del.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Show an input dialog to get the room name to delete
-                String roomNameToDelete = JOptionPane.showInputDialog(
-                        frame,
-                        "Enter the room name to delete:",
-                        "Delete Room",
-                        JOptionPane.PLAIN_MESSAGE);
-                if (roomNameToDelete != null && !roomNameToDelete.trim().isEmpty()) {
-                    // Check if the room name exists in the list model
-                    boolean exists = false;
-                    for (int i = 0; i < listModel.size(); i++) {
-                        if (listModel.get(i).equals(roomNameToDelete.trim())) {
-                            // If it exists, remove it
-                            listModel.remove(i);
-                            JOptionPane.showMessageDialog(frame, "Room '" + roomNameToDelete + "' deleted.");
-                            //서버로 룸 없어진 정보 보내기
-                            //서버에서 정보받기
-                            exists = true;
-                            break;
-                        }
-                    }
-                    // If the room name does not exist, show a message
-                    if (!exists) {
-                        JOptionPane.showMessageDialog(frame, "Room '" + roomNameToDelete + "' not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                } else if (roomNameToDelete != null) {
-                    // If the user entered a blank name, show a warning message
-                    JOptionPane.showMessageDialog(frame, "Room name cannot be blank.", "Error", JOptionPane.ERROR_MESSAGE);
+                    new Room(listModel.get(select));
+                    System.out.println(listModel.get(select));
                 }
             }
         });
+        //룸 삭제?
+        del.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (select > -1) {
+                    send(new Send(id, select, Send.MODE_REMOVE_ROOM));
+                    System.out.println(listModel.get(select));
+                }
+            }
+        });
+
         frame.setContentPane(panel);
         frame.setVisible(true);
 
-        connectToServer();
-        send(new Send(id,pw,Send.MODE_IN_ROOM));
-
     }
-
 }
+

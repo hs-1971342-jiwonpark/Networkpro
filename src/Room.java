@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -18,11 +20,9 @@ public class Room extends JFrame {
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;
-    JLabel jb2;
-    JLabel jb1;
+    JLabel jb1, jb2, label[];
     JPanel gridPanel;
-    JLabel label[];
-    String roomName;
+    String roomName, host;
 
     void sendMessage() {
     }
@@ -48,103 +48,19 @@ public class Room extends JFrame {
             System.out.println("클라이언트 일반 전송 오류"+e.getMessage());
         }
     }
-    private void checkedLogin(){
-        // 서버에 연결하는 로직 구현
-        try {
-            socket = new Socket();
-            SocketAddress sa = new InetSocketAddress(serverAddress, serverPort);
-            socket.connect(sa,3000);
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            receiveThread = new Thread(new Runnable(){
-                private ObjectInputStream in;
-                void receiveMessage() {
-                    try {
-                        Send inMsg = (Send)in.readObject();
-                        while(inMsg == null) {  // 메시지를 계속 읽어 들임
-                            System.out.println("클라이언트 일반 전송 오류");
-                            return;
-                        }
-                        if(inMsg.mode == Send.MODE_LOGIN){
-                            new StartFrame();
-                        }
-                        else{
-                            System.out.println("dd");
-                        }
-                    } catch(IOException e) {
-                        System.out.println(e.getMessage());
-                    } catch(ClassNotFoundException e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-                @Override
-                public void run() {
-                    try {
-                        in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                    }catch(IOException e) {
-                        System.out.println("입력 스트림이 열리지 않음");
-                    }
-                    while(receiveThread == Thread.currentThread()) {
-                        receiveMessage();
-                    }
-                }
-            });
-            receiveThread.start();
-        }
-        catch (IOException e) {
-            socket = new Socket();
-            SocketAddress sa = new InetSocketAddress(serverAddress,serverPort);
-            try {
-                socket.connect(sa,3000);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        }
-        sendMessage();
-    }
     private ImageIcon resizeImage(ImageIcon originalImage, int targetWidth, int targetHeight) {
         Image img = originalImage.getImage();
         Image resizedImg = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
         return new ImageIcon(resizedImg);
     }
 
-
-
-
-
-
-
-
-
-
-
-
     public Room(String roomName) {
         this.roomName = roomName;
-
         // 창의 제목 설정
         setTitle("Room with Grid and Chat Panel");
 
         // 레이아웃을 BorderLayout으로 설정
         setLayout(new BorderLayout());
-
-//        try {
-//            Send inMsg = (Send)in.readObject();
-//            while(inMsg == null) {  // 메시지를 계속 읽어 들임
-//                System.out.println("클라이언트 일반 전송 오류");
-//                return;
-//            }
-//            if(inMsg.mode == Send.MODE_LOGIN){
-//                new StartFrame();
-//            }
-//            else{
-//                System.out.println("dd");
-//            }
-//        } catch(IOException e) {
-//            System.out.println(e.getMessage());
-//        } catch(ClassNotFoundException e) {
-//            System.out.println(e.getMessage());
-//        }
-
         // 그리드 패널 생성 및 구성
         gridPanel = new JPanel(new GridLayout(10 , 2));
         // 첫 번째 라벨 설정
@@ -186,11 +102,20 @@ public class Room extends JFrame {
 
         // 창을 보이게 설정
         setVisible(true);
-
         // 창을 닫았을 때 프로그램이 종료되도록 설정
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.out.println("창닫는 이벤트");
+                dispose();
+            }
+        });
     }
 
+    public Room(String roomName, String host){
+        this(roomName);
+        this.host = host;
+    }
     public static void main(String[] args) {
         // Room 클래스의 인스턴스를 생성하여 창을 띄움
         new Room("1");

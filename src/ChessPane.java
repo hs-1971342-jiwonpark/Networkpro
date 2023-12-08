@@ -29,11 +29,6 @@ public class ChessPane extends JLayeredPane implements MouseListener {
     public ChessPane(Cor cor){
         this.playerColor = cor;
     }
-    public Square getSquareAt(int row, int col) {
-        return grid[row][col];
-    }
-
-
     private void initializeSquares() {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
@@ -80,13 +75,13 @@ public class ChessPane extends JLayeredPane implements MouseListener {
             }
         }
         turn.add(newGrid);
+
+
+
     }
     public ChessPane() {
         setLayout(new GridLayout(DIMENSION, DIMENSION));
         initializeSquares();
-
-
-
 
         // Pawn 클래스의 초기화를 ChessPane 이후에 진행
         new Pawn(Cor.white, this).initPos();
@@ -161,6 +156,8 @@ public class ChessPane extends JLayeredPane implements MouseListener {
 
     }
 
-
+    public static void main(String[] args) {
+        new ChatPanel();
+    }
 
 }
