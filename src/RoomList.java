@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Vector;
 
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
@@ -21,7 +22,7 @@ public class RoomList implements Serializable {
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;
-    JLabel[] label;
+    JLabel[] label = new JLabel[21];
     JPanel gridPanel;
     String roomName;
 
@@ -294,7 +295,6 @@ public class RoomList implements Serializable {
         }
     }
     private void initializeLabels() {
-        label = new JLabel[21];
         gridPanel = new JPanel(new GridLayout(10, 2)); // gridPanel을 초기화합니다.
 
         for (int i = 1; i < label.length; i++) {
@@ -311,11 +311,25 @@ public class RoomList implements Serializable {
         }
     }
     private void newLabel(int rm) {
+        Vector<String> in_user = new Vector<>();
+        if(idv.size()>0) {
+            in_user = idv.get(rm);
+            System.out.println("in_user: "+Arrays.deepToString(in_user.toArray()));
+        }
+        else{
+            return;
+        }
         for (int i = 1; i < label.length; i++) {
-            if (i < idv.get(rm).size()) {
-                label[i].setText(i + " " + idv.get(rm).get(i));
-            } else {
-                label[i].setText(String.valueOf(i));
+            if (in_user != null && in_user.size()>0) {
+                if (i <= in_user.size()) {
+                    label[i].setText(i + " " + in_user.get(i-1));
+                } else {
+                    label[i].setText(String.valueOf(i));
+                }
+            }
+            else{
+                System.out.println("rm이 없음!!!!");
+                break;
             }
         }
 
