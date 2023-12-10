@@ -16,13 +16,13 @@ public class RoomList implements Serializable {
     String id;
     String pw;
 
-    int select;
+    int select = 0;
 
 
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;
-    JLabel[] label = new JLabel[21];
+    static JLabel[] label = new JLabel[20];
     JPanel gridPanel;
     String roomName;
 
@@ -31,8 +31,8 @@ public class RoomList implements Serializable {
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
-    static private Vector<String> roomList = new Vector<>();
-    static private Vector<Vector<String>> idv = new Vector<Vector<String>>();
+    static private Vector<String> roomList = new Vector<>(10);
+    static private Vector<Vector<String>> idv = new Vector<Vector<String>>(10);
     DefaultListModel<String> listModel;
     JList<String> roomLists;
     JScrollPane scrollPane;
@@ -52,31 +52,33 @@ public class RoomList implements Serializable {
             void receiveMessage() {
                 try {
                     Send inMsg = (Send) in.readObject();
-                    // 메시지를 계속 읽어 들임
-                    switch (inMsg.mode) {
-                        case Send.MODE_CT_ROOM:
-                            listModel.addElement(inMsg.roomName);
-                            idv = inMsg.idv;
-                            roomList = inMsg.roomList;
-                            if(inMsg.userID.equals(id)) {
-                                createRoom(inMsg.userID,inMsg.roomNum);
-                                send(new Send(id,roomList,roomName,idv, roomList.size(),Send.MODE_IN_ME));
-                                frame.setVisible(false);
-                            }
-                            else{
-                                System.out.println("다른 유저가 방을 추가함.");
-                            }
-                            break;
-                        case Send.MODE_ENTER_ROOM: //방입장
-                            idv = inMsg.idv;
-                            roomList = inMsg.roomList;
-                            if (inMsg.userID.equals(id)) {//같은유저
-                                createRoom(inMsg.userID,inMsg.roomNum);
-                                frame.setVisible(false);
-                            }
-                            send(new Send(id,inMsg.roomNum,inMsg.roomName,Send.MODE_IN_ME));
-                            newLabel(inMsg.roomNum);
-                            break;
+                    if(inMsg!=null) {
+                        // 메시지를 계속 읽어 들임
+                        switch (inMsg.mode) {
+                            case Send.MODE_CT_ROOM:
+                                System.out.println("방생성 클라 룸번호" + inMsg.roomName);
+                                listModel.addElement(inMsg.roomName);
+                                idv = inMsg.idv;
+                                roomList = inMsg.roomList;
+                                if (inMsg.userID.equals(id)) {
+                                    createRoom(inMsg.userID, inMsg.roomNum);
+                                    send(new Send(id, roomList, roomName, idv, idv.size(), Send.MODE_IN_ME));
+                                    frame.setVisible(false);
+                                } else {
+                                    System.out.println("다른 유저가 방을 추가함.");
+                                }
+                                break;
+                            case Send.MODE_ENTER_ROOM: //방입장
+                                System.out.println("방입장 클라 룸번호" + inMsg.roomNum);
+                                idv = inMsg.idv;
+                                roomList = inMsg.roomList;
+                                if (inMsg.userID.equals(id)) {//같은유저
+                                    createRoom(inMsg.userID, inMsg.roomNum);
+                                    frame.setVisible(false);
+                                }
+                                send(new Send(id, inMsg.roomNum, inMsg.roomName, Send.MODE_IN_ME));
+                                newLabel(inMsg.roomNum);
+                                break;
                         /*case Send.MODE_ENTER_HUMAN:// 동시성 제어
                             if (!room.idv.contains(inMsg.userID)) {
                                 room.idv.add(inMsg.userID);
@@ -84,31 +86,41 @@ public class RoomList implements Serializable {
                                 System.out.println("이미 존재하는 사용자 ID: " + inMsg.userID);
                             }
                             break;*/
-                        case Send.MODE_IN_ME:
-                            idv = inMsg.idv;
-                            newLabel(inMsg.roomNum);
-                            break;
-                        case Send.MODE_DEL_ROOM:
-                            listModel.remove(inMsg.roomNum);
-                            System.out.println("방제거 메세지옴");
-                            break;
-                        case Send.MODE_ERROR:
-                            System.out.println("error");
-                            break;
-                        case Send.MODE_IN_ROOM:
-                            roomList = inMsg.roomList;
-                            if (roomList.size() > 0) {
-                                for (String name : roomList) {
-                                    listModel.addElement(name);
+                            case Send.MODE_IN_ME:
+                                System.out.println("인미클라 룸버호" + inMsg.roomNum);
+                                idv = inMsg.idv;
+                                newLabel(inMsg.roomNum);
+                                break;
+                            case Send.MODE_DEL_ROOM:
+                                listModel.remove(inMsg.roomNum);
+                                System.out.println("방제거 메세지옴");
+                                break;
+                            case Send.MODE_ERROR:
+                                System.out.println("error");
+                                break;
+                            case Send.MODE_IN_ROOM:
+                                roomList = inMsg.roomList;
+                                if (roomList.size() > 0) {
+                                    for (String name : roomList) {
+                                        listModel.addElement(name);
+                                    }
                                 }
-                            }
-                            System.out.println("방들어옴 메세지옴");
-                            break;
+                                System.out.println("방들어옴 메세지옴");
+                                break;
+                        }
                     }
                 } catch (IOException e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("이ㅇ");
                 } catch (ClassNotFoundException e) {
                     System.out.println("잘못된 객체가 전달되었습니다.");
+                }finally {
+                    try {
+                        if (socket != null) {
+                            socket.close();
+                        }
+                    } catch (IOException e) {
+                        System.err.println("소켓 종료 중 오류: " + e.getMessage());
+                    }
                 }
             }
 
@@ -169,6 +181,7 @@ public class RoomList implements Serializable {
                 if (result == JOptionPane.OK_OPTION) {
                     String roomName = roomNameField.getText().trim();
                     if (!roomName.isEmpty()) {
+                        System.out.println("idv"+idv.size());
                         send(new Send(id,roomList,roomName,idv, idv.size(),Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
                     }
                 }
@@ -178,9 +191,11 @@ public class RoomList implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 select = roomLists.getSelectedIndex();
-                if (select > -1)
-                    send(new Send(id,roomList,roomName,idv, select,Send.MODE_ENTER_ROOM));
-                System.out.println(listModel.get(select));
+                if (select > -1) {
+                    System.out.println("셀렉  " + select);
+                    send(new Send(id, roomList, roomName, idv, select + 1, Send.MODE_ENTER_ROOM));
+                    System.out.println(listModel.get(select));
+                }
             }
         });
         del.addActionListener(new ActionListener() {
@@ -252,8 +267,8 @@ public class RoomList implements Serializable {
 
 
         jf.setLayout(new BorderLayout());
-        initializeLabels();
 
+        initializeLabels();
         // 채팅 패널 생성 및 구성
         chatPanel = new JPanel(new BorderLayout());
         chatPanel.setPreferredSize(new Dimension(400, 75)); // 채팅 패널의 선호되는 크기를 조금 줄임
@@ -265,7 +280,6 @@ public class RoomList implements Serializable {
 
         // 패널들을 프레임에 추가
         jf.add(gridPanel, BorderLayout.CENTER);
-
         jf.add(chatPanel, BorderLayout.SOUTH);
 
         // 창의 기본 크기 설정을 조금 줄임
@@ -277,18 +291,17 @@ public class RoomList implements Serializable {
         // 창을 보이게 설정
         jf.setVisible(true);
 
-
         connectToServer();
 
         // 창을 닫았을 때 프로그램이 종료되도록 설정
         jf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
     private void configureLabelColor(JLabel label, int index) {
-        if (index == 1) {
+        if (index == 0) {
             label.setOpaque(true);
             label.setBackground(Color.red);
             label.setForeground(Color.yellow);
-        } else if (index == 2) {
+        } else if (index == 1) {
             label.setOpaque(true);
             label.setBackground(Color.blue);
             label.setForeground(Color.yellow);
@@ -296,12 +309,11 @@ public class RoomList implements Serializable {
     }
     private void initializeLabels() {
         gridPanel = new JPanel(new GridLayout(10, 2)); // gridPanel을 초기화합니다.
-
-        for (int i = 1; i < label.length; i++) {
-            if (i <= idv.size()) {
-                label[i] = new JLabel(i + " " + idv.get(i - 1));
+        for (int i = 0; i < label.length; i++) {
+            if (i < idv.size()) {
+                label[i] = new JLabel(i+1 + " " + idv.get(i));
             } else {
-                label[i] = new JLabel(String.valueOf(i));
+                label[i] = new JLabel(String.valueOf(i+1));
             }
 
             // 색상 설정
@@ -310,32 +322,18 @@ public class RoomList implements Serializable {
             gridPanel.add(label[i]);
         }
     }
-    private void newLabel(int rm) {
-        Vector<String> in_user = new Vector<>();
-        if(idv.size()>0) {
-            in_user = idv.get(rm);
-            System.out.println("in_user: "+Arrays.deepToString(in_user.toArray()));
-        }
-        else{
-            return;
-        }
-        for (int i = 1; i < label.length; i++) {
-            if (in_user != null && in_user.size()>0) {
-                if (i <= in_user.size()) {
-                    label[i].setText(i + " " + in_user.get(i-1));
-                } else {
-                    label[i].setText(String.valueOf(i));
-                }
-            }
-            else{
-                System.out.println("rm이 없음!!!!");
-                break;
-            }
+
+
+    private void newLabel(int rm) { //ct시 rm  = 1
+        System.out.println(rm);
+        for (int i = 0; i < label.length; i++) {
+            if (i<idv.get(rm-1).size())
+                label[i].setText(i + " " + (idv.elementAt(rm-1)).elementAt(i));
+            else
+                label[i].setText(String.valueOf(i+1));
         }
 
     }
-
-
 
 
 }

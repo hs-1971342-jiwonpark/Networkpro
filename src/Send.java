@@ -19,14 +19,18 @@ public class Send implements Serializable {
     public final static int MODE_ERROR = 0x256;
     public final static int MODE_ENTER_HUMAN = 0x512;
     public final static int MODE_IN_ME = 0x1024;
+    public final static int MODE_RETURN = 0x2048;
+    public final static int MODE_RETURN2 = 0x4096;
     private Pos pos;
     String userPW;
     private int sendType;
     String userID;
     int mode;
+
     String message;
-     Vector<String> roomList = new Vector<>();
-    Vector<Vector<String>> idv = new Vector<Vector<String>>();
+    Vector<String>users = new Vector<>();
+     Vector<String> roomList = new Vector<>(10);
+    Vector<Vector<String>> idv = new Vector<Vector<String>>(10);
     ImageIcon image;
     long size;
     String roomName;
@@ -40,6 +44,11 @@ public class Send implements Serializable {
         this.userPW = userPW;
         this.userID = userID;
         this.mode = code;
+    }
+    public Send(String id, Vector<String> users, int mode){
+        this.userID = id;
+        this.users = users;
+        this.mode = mode;
     }
 
    /* public Send(String id, RoomList.Room room, String roomName, int roomNum, int code){
@@ -68,6 +77,13 @@ public class Send implements Serializable {
         this.roomName = roomName;
         this.mode = mode;
     }
+
+    public Send(String roomName,Vector<Vector<String>> idv,int roomNum,int mode){
+        this.roomName = roomName;
+        this.idv = idv;
+        this.roomNum = roomNum;
+        this.mode=mode;
+    }
     public Send(int mode){
         this.mode = mode;
     }
@@ -87,7 +103,7 @@ public class Send implements Serializable {
     }
     public Send(Vector<String> roomNames, int code){
         this.mode = code;
-        this.roomList = roomNames;
+        this.users.addAll(roomNames);
     }
     public Send(String id,int selectedIndex,int code){
         this.userID = id;

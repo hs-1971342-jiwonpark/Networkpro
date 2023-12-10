@@ -21,8 +21,9 @@ public class Server extends JFrame {
     private JButton b_disconnect = new JButton("서버 종료");
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
-    private Vector<String> roomList = new Vector<>();
-    private Vector<Vector<String>> idv = new Vector<Vector<String>>();
+    private Vector<String> roomList = new Vector<>(10);
+    private Vector<Vector<String>> idv = new Vector<Vector<String>>(10);
+    private Vector<String> userList = new Vector<>();
 
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
@@ -177,11 +178,12 @@ public class Server extends JFrame {
                         break;
                     }
                     else if(msg.mode == Send.MODE_CT_ROOM){
-                        Vector <String> advect = new Vector<>();
+                        Vector<String> advect = new Vector<>();
                         advect.add(msg.userID);
+                        // 새 방을 리스트의 끝에 추가
                         idv.add(advect);
-                        msg.idv = idv;
                         roomList.add(msg.roomName);
+                        msg.idv = idv;
                         msg.roomList = roomList;
                         broadcasting(msg);
                     }
@@ -192,12 +194,17 @@ public class Server extends JFrame {
 
                     }
                     else if(msg.mode == Send.MODE_IN_ME){
-                        broadcasting(msg);
+                        System.out.println("인미 서버 룸버호"+ msg.roomNum);
+                        broadcasting(new Send(msg.roomName,msg.idv,msg.roomNum,Send.MODE_IN_ME));
                     }
                     else if(msg.mode == Send.MODE_ENTER_ROOM){
-                        idv.get(msg.roomNum).add(msg.userID);
-                        msg.idv = idv;
-                        msg.roomList = roomList;
+                        userList = msg.users;
+                        System.out.println("서벚쪽"+userList);
+                        msg.mode = Send.MODE_RETURN;
+                        userList.add(msg.userID);
+
+                        System.out.println("서벚쪽"+userList);
+                        msg.users = userList;
                         broadcasting(msg);
                     }
                     else if (msg.mode == Send.MODE_TX_IMAGE) {
@@ -205,19 +212,23 @@ public class Server extends JFrame {
                         broadcasting(msg);
                     }
                     else if (msg.mode == Send.MODE_IN_ROOM){
-                        msg.roomList = roomList;
-                        send(msg);
+                        msg.mode = Send.MODE_RETURN;
+                        userList.add(msg.userID);
+                        msg.users = userList;
+                        System.out.println(userList);
+                        System.out.println(msg.users);
+                        broadcasting(new Send(userList, Send.MODE_RETURN));
                     }
-                    /*else if(msg.mode == Send.MODE_DEL_ROOM){
-                        System.out.println("딜리트메세지 서버에옴"+msg.userID+"  "+rooms.get(msg.roomNum).getId());
-                        if(msg.userID.equals(rooms.get(msg.roomNum).getId())) { //유저아이디와 방아이디가 같으면
-                            rooms.remove(msg.roomNum);
-                            broadcasting(msg);
-                        }
-                        else{
-                            send(new Send(Send.MODE_ERROR));
-                        }
-                    }*/
+                        /*else if(msg.mode == Send.MODE_DEL_ROOM){
+                            System.out.println("딜리트메세지 서버에옴"+msg.userID+"  "+rooms.get(msg.roomNum).getId());
+                            if(msg.userID.equals(rooms.get(msg.roomNum).getId())) { //유저아이디와 방아이디가 같으면
+                                rooms.remove(msg.roomNum);
+                                broadcasting(msg);
+                            }
+                            else{
+                                send(new Send(Send.MODE_ERROR));
+                            }
+                        }*/
                 }
                 users.removeElement(this);
                 printDisplay(uid + "퇴장. 현재 참가자 수: "+ users.size());
