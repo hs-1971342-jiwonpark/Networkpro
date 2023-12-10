@@ -3,19 +3,31 @@ import java.awt.*;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Knight extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+    ChessPane pane;
     Knight(){
         this.name = "knight";
     }
 
-    Knight(Cor cor, ChessPane chessPane) {
+    Knight(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Knight(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
+    Knight(Cor cor) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+    }
 
-    Knight(Pos pos, Cor cor, ChessPane chessPane) {
+    Knight(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= new Pos[]
@@ -29,9 +41,9 @@ public class Knight extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,1);
-        chessPane.grid[j][1].setPiece((ChessPiece)this);
+        pane.grid[j][1].setPiece((ChessPiece)this);
         this.pos = new Pos(j,6);
-        chessPane.grid[j][6].setPiece((ChessPiece)this);
+        pane.grid[j][6].setPiece((ChessPiece)this);
     }
 
 

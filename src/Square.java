@@ -27,8 +27,9 @@ import java.awt.*;
 
         public void setPiece(ChessPiece cp){
             this.havePiece = cp;
-            if(this.havePiece != null)
+            if(this.havePiece != null) {
                 setImage();
+            }
             else setIcon(null);
         }
 

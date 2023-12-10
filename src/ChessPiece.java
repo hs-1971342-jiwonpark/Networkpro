@@ -1,12 +1,13 @@
 import javax.swing.*;
+import java.io.Serializable;
 
 
-enum Cor{
+enum Cor implements Serializable{
     black,
     white,
     none
 }
-public abstract class ChessPiece {
+public abstract class ChessPiece implements Serializable {
 
     protected Pos[] possble;
 
@@ -18,8 +19,6 @@ public abstract class ChessPiece {
 
     //말의 종류
     protected String name;
-
-    protected ChessPane chessPane;
     //말의 색
     protected Cor color;
     protected abstract void Move(Square sq);

@@ -1,23 +1,39 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.SQLOutput;
 import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Pawn extends ChessPiece {
 
+    StartFrame chessPane;
+
+    ChessPane pane;
     Pawn(){
         this.name = "pawn";
     }
 
-    Pawn(Cor cor, ChessPane chessPane) {
+    Pawn(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Pawn(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
+    Pawn(Pos pos, Cor cor) {
+        this();
+        this.color = cor;
+        this.pos =pos;
+    }
 
-    Pawn(Pos pos, Cor cor, ChessPane chessPane) {
+    Pawn(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= this.color.equals(Cor.black) ?
@@ -31,7 +47,7 @@ public class Pawn extends ChessPiece {
         int j = (this.color == Cor.white) ? 6 : 1;
         for(int i=0;i<8;i++) {
             this.pos = new Pos(j,i);
-            chessPane.grid[j][i].setPiece((ChessPiece)this);
+            pane.grid[j][i].setPiece(new Pawn(this.pos,this.color));
         }
     }
 
@@ -55,14 +71,15 @@ public class Pawn extends ChessPiece {
                 chessPane.grid[first.pos.y][this.pos.x].havePiece = null;
                 chessPane.grid[first.pos.y][this.pos.x].setIcon(null);
             }
-            System.out.println("뭐가 문제임?");
             //프로모션
-            if(this.pos.y == ((this.color == Cor.white)? 7 : 0)){
-                //프로모션 함수 호출
-                promotion();
-            }
+
             chessPane.grid[this.pos.y][this.pos.x].havePiece = first.havePiece;
             chessPane.grid[first.pos.y][first.pos.x].havePiece = null;
+            if(this.pos.y == ((chessPane.playerColor == Cor.white)? 0 : 7)){
+                //프로모션 함수 호출
+                System.out.println("프로모션 시작");
+                promotion();
+            }
             chessPane.grid[first.pos.y][first.pos.x].setIcon(null);
             chessPane.grid[this.pos.y][this.pos.x].setImage();
         }
@@ -139,11 +156,11 @@ public class Pawn extends ChessPiece {
             return 0;
         }
         ChessPiece[][] lastcp;
-        if(chessPane.turn.size()-2 <0) {
+        if(chessPane.turn.size()-1 ==0) {
             System.out.println("turn 사이즈 오류");
             return 0;
         }
-        lastcp = (ChessPiece[][])chessPane.turn.elementAt(chessPane.turn.size()-2);
+        lastcp = (ChessPiece[][])chessPane.turn.elementAt(chessPane.turn.size()-1);
 
         //색에 따라 기준선 달리정함
         //내가 선택한 폰이 대각선 움직일때, 배열범위 벗어나지 못하게
@@ -172,6 +189,61 @@ public class Pawn extends ChessPiece {
 
 
     public void promotion(){
-        
+        JButton pawnButton = new JButton("", new ImageIcon(chessPane.playerColor+"_pawn.png"));
+        JButton rookButton = new JButton("", new ImageIcon(chessPane.playerColor+"_rook.png"));
+        JButton bishopButton = new JButton("", new ImageIcon(chessPane.playerColor+"_bishop.png"));
+        JButton queenButton = new JButton("", new ImageIcon(chessPane.playerColor+"_queen.png"));
+        JButton knightButton = new JButton("", new ImageIcon(chessPane.playerColor+"_knight.png"));
+        Object[] options = { pawnButton, rookButton, bishopButton, knightButton, queenButton };
+        pawnButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                chessPane.grid[pos.y][pos.x].havePiece.name = "pawn";
+                JOptionPane.getRootFrame().dispose();
+            }
+        });
+
+        rookButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                chessPane.grid[pos.y][pos.x].havePiece.name = "rook";
+                JOptionPane.getRootFrame().dispose();
+            }
+        });
+
+        bishopButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                chessPane.grid[pos.y][pos.x].havePiece.name = "bishop";
+                JOptionPane.getRootFrame().dispose();
+            }
+        });
+
+        knightButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                chessPane.grid[pos.y][pos.x].havePiece.name = "knight";
+                JOptionPane.getRootFrame().dispose();
+            }
+        });
+
+        queenButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                chessPane.grid[pos.y][pos.x].havePiece.name = "queen";
+                JOptionPane.getRootFrame().dispose();
+            }
+        });
+
+        int choice = JOptionPane.showOptionDialog(
+                JOptionPane.getRootFrame(),
+                "프로모션할 이미지 선택",
+                "프로모션",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.DEFAULT_OPTION,
+                null,
+                options,
+                null
+        );
+
+
+
+
+        System.out.println("프로모션 끝, 선택 값:" + choice);
     }
 }

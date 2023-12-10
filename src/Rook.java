@@ -4,19 +4,26 @@ import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Rook extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+    ChessPane pane;
     Rook(){
         this.name = "rook";
     }
 
-    Rook(Cor cor, ChessPane chessPane) {
+    Rook(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Rook(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
 
-    Rook(Pos pos, Cor cor, ChessPane chessPane) {
+    Rook(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= new Pos[]{
@@ -28,9 +35,9 @@ public class Rook extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,0);
-        chessPane.grid[j][0].setPiece((ChessPiece)this);
+        pane.grid[j][0].setPiece((ChessPiece)this);
         this.pos = new Pos(j,7);
-        chessPane.grid[j][7].setPiece((ChessPiece)this);
+        pane.grid[j][7].setPiece((ChessPiece)this);
     }
 
 
@@ -133,8 +140,4 @@ public class Rook extends ChessPiece {
         }
     }
 
-
-    public void promotion(){
-        
-    }
 }

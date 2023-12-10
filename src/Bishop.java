@@ -1,23 +1,30 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Bishop extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+
+    ChessPane pane;
 
     Bishop(){
         this.name = "bishop";
     }
 
-    Bishop(Cor cor, ChessPane chessPane) {
+    Bishop(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Bishop(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
 
-    Bishop(Pos pos, Cor cor, ChessPane chessPane) {
+    Bishop(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= null;
@@ -26,9 +33,9 @@ public class Bishop extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,2);
-        chessPane.grid[j][2].setPiece((ChessPiece)this);
+        pane.grid[j][2].setPiece((ChessPiece)this);
         this.pos = new Pos(j,5);
-        chessPane.grid[j][5].setPiece((ChessPiece)this);
+        pane.grid[j][5].setPiece((ChessPiece)this);
     }
 
 

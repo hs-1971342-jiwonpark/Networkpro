@@ -9,13 +9,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 public class Server extends JFrame {
     private int port;
     private ServerSocket serverSocket;
-
-    private Process process;
     private JTextField t_input = new JTextField();
     private JTextArea t_display = new JTextArea();
     private JButton b_connect = new JButton("서버 시작");
@@ -23,14 +23,14 @@ public class Server extends JFrame {
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
 
-    private ArrayList<Room> rooms = new ArrayList<Room>();
-    private Vector<String> rooms1 = new Vector<String>();
+    private ChessPane cp = ChessPane.getInstance();
+
+    private Vector<ChessPiece[][]> chessPieces = new Vector<ChessPiece[][]>();
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
     public Server(int port) {
         super("체스 서버");
         this.port = port;
-        this.process = new Process(ChessPane.getInstance());
         buildGUI();
         setLocation(400,0);
         setSize(400, 300);
@@ -151,8 +151,6 @@ public class Server extends JFrame {
         private String uid;
         private String upw;
 
-        private Room room = null;
-
         String getUid(){
             return uid;
         }
@@ -181,65 +179,41 @@ public class Server extends JFrame {
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
-                    }
-                    else if(msg.mode == Send.MODE_CT_ROOM){
-                        rooms.add(msg.roomNum,msg.room);
-                        broadcasting(msg);
-                    }
-                    else if(msg.mode == Send.MODE_TX_STRING) {
-                        message = uid + ": "+ msg.message;
+                    }else if(msg.mode == Send.MODE_TX_STRING) {
+                        message = uid + ": " + msg.message;
                         printDisplay(message);
+                        msg.message = message;
                         broadcasting(msg);
 
-                    }
-                    else if(msg.mode == Send.MODE_ENTER_ROOM){
-                        //룸 참가?
-                        msg.setRoom(rooms.get(msg.selectIndex));
-                        this.room = msg.room;
-                        sendAd(msg);
-                    }
-                    else if (msg.mode == Send.MODE_REMOVE_ROOM) {//룸 제거
-                        //코드 문제 있음
-                        if(msg.userID.equals(rooms.get(msg.selectIndex).host)) {
-                            rooms.remove(msg.selectIndex);
-                            msg.dodelete = true;
-                            broadcasting(msg);
-                        }
-                        else {
-                            send(msg);
-                        }
-                        printDisplay(uid+": "+msg.message);
-                    }
-                    else if (msg.mode == Send.MODE_IN_ROOM) {//로그인 한 후 룸리스트 들어가면.
-                        for(int i=0; i< rooms.size(); i++){
-                            rooms1.add(rooms.get(i).roomName);
-                        }
-                        send(new Send(rooms1, Send.MODE_IN_ROOM));
-
-                    } else if (msg.mode == Send.MODE_TX_POS) {
-                        if(msg.isFirstClick && msg.cor == process.pane.playerColor){
-                            if(process.Check_first_click(msg.getPos())==1){
-                                send((new Send(process.colors,Send.MODE_TX_BACKGROUND)));
+                    }else if(msg.mode == Send.MODE_TX_ChessPiece){
+                        //System.out.println(Arrays.deepToString(msg.cp));
+                        chessPieces.add(msg.cp);
+                        //System.out.println(chessPieces.size());
+                        broadcasting(new Send(msg.cp,chessPieces.size(),Send.MODE_TX_ChessPiece));
+                    }else if(msg.mode == Send.MODE_GAMESTART){
+                        chessPieces.add(cp.saveTurn());
+                       // System.out.println(Arrays.deepToString(chessPieces.lastElement()));
+                        broadcasting(new Send(chessPieces.lastElement(),chessPieces.size(),Send.MODE_TX_ChessPiece));
+                    }else if(msg.mode == Send.MODE_MOVE_CANCEL){
+                        //게임의 시작은 turn이 1부터임
+                        //따라서 첫턴인 화이트는 홀수
+                        int i= (msg.cor == Cor.white)?1:0;
+                        ChessPiece[][] a =null;
+                        //오직 자신의 턴에서만 무르기 가능
+                        if(chessPieces.size()%2 == i)
+                            if(chessPieces.size()-2>0){
+                                chessPieces.remove(chessPieces.size()-1);
+                                chessPieces.remove(chessPieces.size()-1);
+                                a= chessPieces.lastElement();
+                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
                             }
-                        }
-                        else if(!msg.isFirstClick && msg.cor == process.pane.playerColor){
-                            int returnValue = process.Check_second_click(msg.getPos());
-                            if(returnValue ==1){
-                                broadcasting((new Send(process.pane.turn.lastElement(),process.colors,Send.MODE_TX_ChessPiece)));
-                                process.pane.playerColor = (process.pane.playerColor == Cor.white)? Cor.black: Cor.white;
-                            } else if (returnValue==2) {
-                                //잘못된 것을 누르면 아무것도 안함
-                            }  else if (returnValue==3) {
-                                //자기 자신의 말을 누르면
-                                //여기 문제가 생길 수도 있음.\
-                                System.out.println("두번째 클릭에서 같은 색 눌러서 return에 문제 ㄱㄴ");
-                                send((new Send(process.colors,Send.MODE_TX_BACKGROUND)));
+                            else if(chessPieces.size() >= 1){
+                                a= chessPieces.lastElement();
+                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
                             }
-                        }
-
-                    } else if (msg.mode == Send.MODE_CLOSE_ROOM) {
-                        this.room = null;
-                        printDisplay(this.room.toString());
+                    }else if(msg.mode == Send.MODE_GAME_OVER) {
+                        message = msg.cor.toString()+"색인 "+uid+"님이 졌습니다!!!";
+                        broadcasting(new Send(message,Send.MODE_GAME_OVER));
                     }
                 }
                 users.removeElement(this);

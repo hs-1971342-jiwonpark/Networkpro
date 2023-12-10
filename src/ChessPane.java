@@ -1,51 +1,44 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.io.*;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Vector;
 
 
-public class ChessPane extends JLayeredPane implements MouseListener {
+public class ChessPane extends JFrame {
     public static final int DIMENSION = 8;
     public static Square[][] grid = new Square[DIMENSION][DIMENSION];
-
+    ObjectOutputStream out;
+    Socket socket;
     public Vector<ChessPiece[][]> turn = new Vector<ChessPiece[][]>();
     private static ChessPane boardInstance = new ChessPane();
 
-    public Process process;
     public Cor playerColor = Cor.white;
 
-    private boolean firstClick = true;
-    private Square first = null;
-    private Square second;
     public static ChessPane getInstance() {
         return boardInstance;
     }
 
-    public Cor getPlayerColor() {
-        return playerColor;
-    }
-
-    public ChessPane(Cor cor){
-        this.playerColor = cor;
+    public ChessPane(StartFrame sf){
+        this();
+        setVisible(true);
+        add(this);
     }
     private void initializeSquares() {
         for (int i = 0; i < DIMENSION; i++) {
             for (int j = 0; j < DIMENSION; j++) {
                 grid[i][j] = new Square(new Pos(i,j));
                 grid[i][j].setOpaque(true);
-                if ((i + j) % 2 == 0)
-                    grid[i][j].setBackground(Color.WHITE);
-                else
-                    grid[i][j].setBackground(new Color(0xCCA63D));
-                add(grid[i][j]);
-                grid[i][j].addMouseListener(this);
                 grid[i][j].setVisible(true);
             }
         }
     }
 
-    public void reprint(){
+    public void rollback(){
         if(turn.size()-1 <0) return;
         //자신의 턴을 계산하기 위해 나머지 연산
         int num = (this.playerColor == Cor.white)? 0:1;
@@ -74,14 +67,15 @@ public class ChessPane extends JLayeredPane implements MouseListener {
         setVisible(true);
     }
 
-    public void saveTurn(){
+
+    public ChessPiece[][] saveTurn(){
         ChessPiece[][] newGrid = new ChessPiece[DIMENSION][DIMENSION];
         for(int i =0; i< DIMENSION; i++){
             for (int j=0; j< DIMENSION; j++){
                 newGrid[i][j]= grid[i][j].havePiece;
             }
         }
-        turn.add(newGrid);
+        return newGrid;
 
 
 
@@ -105,66 +99,25 @@ public class ChessPane extends JLayeredPane implements MouseListener {
         new Queen(Cor.black, this).initPos();
         saveTurn();
     }
+    public ChessPane(Socket socket, ObjectInputStream in, ObjectOutputStream out, Cor cor) {
+        this();
+        this.socket = socket;
+        this.out = out;
+        this.playerColor = cor;
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        Pos ps = ((Square) e.getComponent()).pos;
-            if(firstClick){
-                switch (process.Check_first_click(ps)){
-                    case 1://정상
-                        firstClick = false;
-                        break;
-                    case 2://다른곳 클릭
-
-                        break;
-                    case 3://자신의 말 클릭
-
-                        break;
-                }
-        }
-        else {
-            switch (process.Check_second_click(ps)){
-                case 1://정상
-                    firstClick = true;
-                    this.playerColor = (this.playerColor == Cor.white) ? Cor.black : Cor.white;
-                    for(int i=0;i<8;i++) {
-                        for (int j = 0; j < 8; j++) {
-                        }
-                    }
-                    System.out.println(turn.size());
-                    break;
-                case 2://다른곳 클릭
-
-                    break;
-                case 3://자신의 말 클릭
-
-                    break;
+    }
+    public void send(Send send) {
+        try {
+            if(this.socket !=null) {
+                out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                out.writeObject(send);
+                out.flush();
             }
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
         }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
-    }
-
-    public static void main(String[] args) {
-        new ChatPanel();
     }
 
 }

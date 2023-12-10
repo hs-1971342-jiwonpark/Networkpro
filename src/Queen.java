@@ -4,20 +4,27 @@ import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Queen extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
 
+    ChessPane pane;
     Queen(){
         this.name = "queen";
     }
 
-    Queen(Cor cor, ChessPane chessPane) {
+    Queen(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Queen(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
 
-    Queen(Pos pos, Cor cor, ChessPane chessPane) {
+    Queen(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= null;
@@ -26,7 +33,7 @@ public class Queen extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,4);
-        chessPane.grid[j][3].setPiece((ChessPiece)this);
+        pane.grid[j][3].setPiece((ChessPiece)this);
     }
 
 
