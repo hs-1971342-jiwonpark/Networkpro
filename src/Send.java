@@ -16,19 +16,25 @@ public class Send implements Serializable {
     public final static int MODE_ENTER_ROOM = 0x16;
     public final static int MODE_REMOVE_ROOM = 0x32;
     public final static int MODE_IN_ROOM = 0x64;
+    public final static int MODE_DEL_ROOM = 0x128;
+    public final static int MODE_ERROR = 0x256;
+    public final static int MODE_ENTER_HUMAN = 0x512;
+    public final static int MODE_IN_ME = 0x1024;
     private Pos pos;
     String userPW;
     private int sendType;
     String userID;
     int mode;
     String message;
+    Vector<String> idv = new Vector<>();
     ImageIcon image;
     long size;
     String roomName;
-    Vector<String> roomList;
+    Vector<String> roomList = new Vector<>();
     int roomNum;
     Room room;
     int selectIndex;
+
     void setName(String name){
         this.userID = name;
     }
@@ -37,6 +43,7 @@ public class Send implements Serializable {
         this.userID = userID;
         this.mode = code;
     }
+
     public Send(String id,Room room,String roomName, int roomNum, int code){
         this.userID =id;
         this.room = room;
@@ -44,7 +51,26 @@ public class Send implements Serializable {
         this.roomNum = roomNum;
         this.mode = code;
     }
-
+    public Send(String id,String roomName, int roomNum, int code){
+        this.userID =id;
+        this.roomName = roomName;
+        this.roomNum = roomNum;
+        this.mode = code;
+    }
+    public Send(String id, Vector<String>idv,int mode){
+        this.mode = mode;
+        this.idv = idv;
+        this.userID = id;
+    }
+    public Send(String id,int roomNum,String roomName,int mode){
+        this.userID = id;
+        this.roomNum = roomNum;
+        this.roomName = roomName;
+        this.mode = mode;
+    }
+    public Send(int mode){
+        this.mode = mode;
+    }
     public void setRoom(Room room) {
         this.room = room;
     }

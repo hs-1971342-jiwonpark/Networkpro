@@ -157,12 +157,14 @@ public class LoginFr extends JFrame {
                                 if (inMsg.mode == Send.MODE_LOGIN) {
                                     System.out.println(inMsg.userID);
                                     System.out.println(inMsg.mode);
-                                    new RoomList(socket,in,out);
+                                    new RoomList(id,pw,socket,in,out);
                                     dispose();
+                                    break;
                                 } else {
                                     System.out.println("r");
                                 }
                             }
+                            Thread.currentThread().interrupt();
                         } catch (IOException |
                                  ClassNotFoundException e1) {
                             System.out.println("e1.getMessage()");
@@ -172,17 +174,8 @@ public class LoginFr extends JFrame {
                 });
                 thread.start();
             }
+
         });
-
-
-
-
-
-
-
-
-
-
 
 
 

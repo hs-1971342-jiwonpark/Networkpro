@@ -20,7 +20,7 @@ public class Server extends JFrame {
     private JButton b_disconnect = new JButton("서버 종료");
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
-
+    private Vector<String> idv = new Vector<>();
     private ArrayList<Room> rooms = new ArrayList<Room>();
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
@@ -170,13 +170,12 @@ public class Server extends JFrame {
                         printDisplay("새 참가자 : "+uid);
                         printDisplay("현재 참가자 수 : "+ users.size());
                         sendAd(msg);
-                        continue;
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
                     }
                     else if(msg.mode == Send.MODE_CT_ROOM){
-                        rooms.add(msg.roomNum,msg.room);
+                        rooms.add(msg.room);
                         broadcasting(msg);
                     }
                     else if(msg.mode == Send.MODE_TX_STRING) {
@@ -185,17 +184,35 @@ public class Server extends JFrame {
                         broadcasting(msg);
 
                     }
+                    else if(msg.mode == Send.MODE_IN_ME){
+                        idv = rooms.get(msg.roomNum).getIdVec();
+                        send(new Send(msg.userID,idv,Send.MODE_IN_ME));
+
+                    }
                     else if(msg.mode == Send.MODE_ENTER_ROOM){
-                        msg.setRoom(rooms.get(msg.selectIndex));
+                            msg.setRoom(rooms.get(msg.selectIndex));
+                            msg.room.addUserId(msg.userID);
+                            System.out.println(msg.room.getIdVec());
+                            broadcasting(msg);
+                    }
+                    else if (msg.mode == Send.MODE_TX_IMAGE) {
+                        printDisplay(uid+": "+msg.message);
+                        broadcasting(msg);
+                    }
+                    else if (msg.mode == Send.MODE_IN_ROOM){
+                        for(Room s:rooms)
+                            msg.roomList.add(s.getRoomName());
                         sendAd(msg);
                     }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
-                    }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
+                    else if(msg.mode == Send.MODE_DEL_ROOM){
+                        System.out.println("딜리트메세지 서버에옴"+msg.userID+"  "+rooms.get(msg.roomNum).getId());
+                        if(msg.userID.equals(rooms.get(msg.roomNum).getId())) { //유저아이디와 방아이디가 같으면
+                            rooms.remove(msg.roomNum);
+                            broadcasting(msg);
+                        }
+                        else{
+                            send(new Send(Send.MODE_ERROR));
+                        }
                     }
                 }
                 users.removeElement(this);
