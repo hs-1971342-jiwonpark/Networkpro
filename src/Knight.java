@@ -3,35 +3,47 @@ import java.awt.*;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Knight extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+    ChessPane pane;
     Knight(){
         this.name = "knight";
     }
 
-    Knight(Cor cor, ChessPane chessPane) {
+    Knight(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Knight(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
+    Knight(Cor cor) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+    }
 
-    Knight(Pos pos, Cor cor, ChessPane chessPane) {
+    Knight(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= new Pos[]
                 {new Pos(this.pos.y + 2, this.pos.x -1), new Pos(this.pos.y + 2, this.pos.x + 1),
-                 new Pos(this.pos.y - 2, this.pos.x - 1), new Pos(this.pos.y - 2, this.pos.x + 1),
-                 new Pos(this.pos.y + 1, this.pos.x + 2), new Pos(this.pos.y - 1, this.pos.x + 2),
-                 new Pos(this.pos.y + 1, this.pos.x - 2), new Pos(this.pos.y - 1, this.pos.x - 2)
+                        new Pos(this.pos.y - 2, this.pos.x - 1), new Pos(this.pos.y - 2, this.pos.x + 1),
+                        new Pos(this.pos.y + 1, this.pos.x + 2), new Pos(this.pos.y - 1, this.pos.x + 2),
+                        new Pos(this.pos.y + 1, this.pos.x - 2), new Pos(this.pos.y - 1, this.pos.x - 2)
                 };
     }
 
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,1);
-        chessPane.grid[j][1].setPiece((ChessPiece)this);
+        pane.grid[j][1].setPiece((ChessPiece)this);
         this.pos = new Pos(j,6);
-        chessPane.grid[j][6].setPiece((ChessPiece)this);
+        pane.grid[j][6].setPiece((ChessPiece)this);
     }
 
 
@@ -50,12 +62,12 @@ public class Knight extends ChessPiece {
             if((i.y < chessPane.DIMENSION && i.y >= 0)
                     && (i.x < chessPane.DIMENSION && i.x >= 0))
 
-                    //대각선에 상대말이 잇을 경우 움직임
-                    if (((chessPane.grid[i.y][i.x].havePiece != null) &&
-                            chessPane.playerColor != chessPane.grid[i.y][i.x].havePiece.color)
+                //대각선에 상대말이 잇을 경우 움직임
+                if (((chessPane.grid[i.y][i.x].havePiece != null) &&
+                        chessPane.playerColor != chessPane.grid[i.y][i.x].havePiece.color)
                         || (chessPane.grid[i.y][i.x].havePiece == null))
-                        chessPane.grid[i.y][i.x].setBackground(Color.red);
-                    }
+                    chessPane.grid[i.y][i.x].setBackground(Color.red);
+        }
 
     }
 
@@ -73,6 +85,6 @@ public class Knight extends ChessPiece {
 
 
     public void promotion(){
-        
+
     }
 }

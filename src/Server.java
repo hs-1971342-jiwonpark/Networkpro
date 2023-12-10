@@ -21,8 +21,11 @@ public class Server extends JFrame {
     private JButton b_disconnect = new JButton("서버 종료");
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
-    private Vector<String> roomList = new Vector<>();
-    private Vector<Vector<String>> idv = new Vector<Vector<String>>();
+
+    private Vector<ChessPiece[][]> chessPieces = new Vector<ChessPiece[][]>();
+    private Vector<String> userList = new Vector<>();
+
+    private ChessPane cp = ChessPane.getInstance();
 
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
@@ -149,6 +152,8 @@ public class Server extends JFrame {
         private String uid;
         private String upw;
 
+        private Cor cor;
+
         String getUid(){
             return uid;
         }
@@ -176,48 +181,74 @@ public class Server extends JFrame {
                     else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
                     }
-                    else if(msg.mode == Send.MODE_CT_ROOM){
-                        Vector <String> advect = new Vector<>();
-                        advect.add(msg.userID);
-                        idv.add(advect);
-                        msg.idv = idv;
-                        roomList.add(msg.roomName);
-                        msg.roomList = roomList;
-                        broadcasting(msg);
-                    }
-                    else if(msg.mode == Send.MODE_TX_STRING) {
-                        message = uid + ": "+ msg.message;
-                        printDisplay(message);
-                        broadcasting(msg);
-
-                    }
-                    else if(msg.mode == Send.MODE_IN_ME){
-                        broadcasting(msg);
-                    }
-                    else if(msg.mode == Send.MODE_ENTER_ROOM){
-                        idv.get(msg.roomNum).add(msg.userID);
-                        msg.idv = idv;
-                        msg.roomList = roomList;
-                        broadcasting(msg);
-                    }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
-                    }
                     else if (msg.mode == Send.MODE_IN_ROOM){
-                        msg.roomList = roomList;
-                        send(msg);
-                    }
-                    /*else if(msg.mode == Send.MODE_DEL_ROOM){
-                        System.out.println("딜리트메세지 서버에옴"+msg.userID+"  "+rooms.get(msg.roomNum).getId());
-                        if(msg.userID.equals(rooms.get(msg.roomNum).getId())) { //유저아이디와 방아이디가 같으면
-                            rooms.remove(msg.roomNum);
-                            broadcasting(msg);
+                        msg.mode = Send.MODE_RETURN;
+                        System.out.println(userList.size());
+                        if(userList.size() == 0) {
+                            for (ClientHandler c : users)
+                                if (c.uid.equals(msg.userID))
+                                    c.cor = Cor.white;
+                        }
+                        else if(userList.size()==1){
+                            for(ClientHandler c : users)
+                                if(c.uid.equals(msg.userID))
+                                    c.cor= Cor.black;
                         }
                         else{
-                            send(new Send(Send.MODE_ERROR));
+                            this.cor =null;
                         }
-                    }*/
+                        userList.add(msg.userID);
+                        msg.users = userList;
+                        System.out.println(userList);
+                        System.out.println(msg.users);
+                        if(users.size() ==2){
+                            broadcasting(new Send(this.cor,Send.MODE_ENTER_HUMAN));
+                        }
+                        else if(users.size()>2){
+                            send(new Send(this.cor,Send.MODE_ENTER_HUMAN));
+                        }
+                        else
+                            broadcasting(new Send(userList, Send.MODE_RETURN));
+
+
+                    }else if(msg.mode == Send.MODE_LOGOUT) {
+                        break;
+                    }else if(msg.mode == Send.MODE_TX_STRING) {
+                        message = uid + ": " + msg.message;
+                        printDisplay(message);
+                        msg.message = message;
+                        broadcasting(msg);
+
+                    }else if(msg.mode == Send.MODE_TX_ChessPiece){
+                        //System.out.println(Arrays.deepToString(msg.cp));
+                        chessPieces.add(msg.cp);
+                        //System.out.println(chessPieces.size());
+                        broadcasting(new Send(msg.cp,chessPieces.size(),Send.MODE_TX_ChessPiece));
+                    }else if(msg.mode == Send.MODE_GAMESTART){
+                        chessPieces.add(cp.saveTurn());
+                        // System.out.println(Arrays.deepToString(chessPieces.lastElement()));
+                        broadcasting(new Send(chessPieces.lastElement(),chessPieces.size(),Send.MODE_TX_ChessPiece));
+                    }else if(msg.mode == Send.MODE_MOVE_CANCEL){
+                        //게임의 시작은 turn이 1부터임
+                        //따라서 첫턴인 화이트는 홀수
+                        int i= (msg.cor == Cor.white)?1:0;
+                        ChessPiece[][] a =null;
+                        //오직 자신의 턴에서만 무르기 가능
+                        if(chessPieces.size()%2 == i)
+                            if(chessPieces.size()-2>0){
+                                chessPieces.remove(chessPieces.size()-1);
+                                chessPieces.remove(chessPieces.size()-1);
+                                a= chessPieces.lastElement();
+                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
+                            }
+                            else if(chessPieces.size() >= 1){
+                                a= chessPieces.lastElement();
+                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
+                            }
+                    }else if(msg.mode == Send.MODE_GAME_OVER) {
+                        message = msg.cor.toString()+"색인 "+uid+"님이 졌습니다!!!";
+                        broadcasting(new Send(message,Send.MODE_GAME_OVER));
+                    }
                 }
                 users.removeElement(this);
                 printDisplay(uid + "퇴장. 현재 참가자 수: "+ users.size());
