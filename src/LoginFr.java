@@ -157,7 +157,7 @@ public class LoginFr extends JFrame {
                                 if (inMsg.mode == Send.MODE_LOGIN) {
                                     System.out.println(inMsg.userID);
                                     System.out.println(inMsg.mode);
-                                    new Room(id,pw,socket,in,out);
+                                    new RoomList(id,pw,socket,in,out);
                                     dispose();
                                     break;
                                 } else {

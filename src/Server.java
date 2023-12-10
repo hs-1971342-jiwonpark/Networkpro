@@ -21,8 +21,8 @@ public class Server extends JFrame {
     private JButton b_disconnect = new JButton("서버 종료");
     private JButton b_send = new JButton("보내기");
     private JButton b_exit = new JButton("종료하기");
-    private Vector<String> roomList = new Vector<>(10);
-    private Vector<Vector<String>> idv = new Vector<Vector<String>>(10);
+    private Vector<String> roomList = new Vector<>();
+    private Vector<Vector<String>> idv = new Vector<Vector<String>>();
     private Vector<String> userList = new Vector<>();
 
     private Thread acceptThread = null;
@@ -160,64 +160,51 @@ public class Server extends JFrame {
             t_input.setEnabled(true);
         }
 
-        void receiveMessages(Socket socket) {
+        public void run() {
             try {
-                ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+                out = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
                 String message;
                 Send msg;
-                while((msg = (Send)in.readObject())!=null) {
-                    if(msg.mode == Send.MODE_LOGIN) {
+                while ((msg = (Send) in.readObject()) != null) {
+                    if (msg.mode == Send.MODE_LOGIN) {
                         uid = msg.userID;
                         upw = msg.userPW;
-                        printDisplay("새 참가자 : "+uid);
-                        printDisplay("현재 참가자 수 : "+ users.size());
+                        printDisplay("새 참가자 : " + uid);
+                        printDisplay("현재 참가자 수 : " + users.size());
                         sendAd(msg);
-                    }
-                    else if(msg.mode == Send.MODE_LOGOUT) {
+                    } else if (msg.mode == Send.MODE_LOGOUT) {
                         break;
-                    }
-                    else if(msg.mode == Send.MODE_CT_ROOM){
+                    } else if (msg.mode == Send.MODE_CT_ROOM) {
                         Vector<String> advect = new Vector<>();
                         advect.add(msg.userID);
                         // 새 방을 리스트의 끝에 추가
                         idv.add(advect);
-                        roomList.add(msg.roomName);
+                        roomList.add( msg.roomName);
                         msg.idv = idv;
                         msg.roomList = roomList;
                         broadcasting(msg);
-                    }
-                    else if(msg.mode == Send.MODE_TX_STRING) {
-                        message = uid + ": "+ msg.message;
+                    } else if (msg.mode == Send.MODE_TX_STRING) {
+                        message = uid + ": " + msg.message;
                         printDisplay(message);
                         broadcasting(msg);
 
-                    }
-                    else if(msg.mode == Send.MODE_IN_ME){
-                        System.out.println("인미 서버 룸버호"+ msg.roomNum);
-                        broadcasting(new Send(msg.roomName,msg.idv,msg.roomNum,Send.MODE_IN_ME));
-                    }
-                    else if(msg.mode == Send.MODE_ENTER_ROOM){
-                        userList = msg.users;
-                        System.out.println("서벚쪽"+userList);
-                        msg.mode = Send.MODE_RETURN;
-                        userList.add(msg.userID);
+                    } else if (msg.mode == Send.MODE_IN_ME) {
+                        System.out.println("인미 서버 룸버호" + msg.roomNum);
+                        broadcasting(msg);
+                    } else if (msg.mode == Send.MODE_ENTER_ROOM) {
+                        System.out.println("엔터 서버 룸버호" + msg.roomNum);
+                        idv.get(msg.roomNum).add(msg.userID);
+                        msg.idv = idv;
+                        msg.roomList = roomList;
+                        broadcasting(msg);
+                    } else if (msg.mode == Send.MODE_TX_IMAGE) {
+                        printDisplay(uid + ": " + msg.message);
+                        broadcasting(msg);
+                    } else if (msg.mode == Send.MODE_IN_ROOM) {
+                        msg.roomList = roomList;
+                        send(msg);
 
-                        System.out.println("서벚쪽"+userList);
-                        msg.users = userList;
-                        broadcasting(msg);
-                    }
-                    else if (msg.mode == Send.MODE_TX_IMAGE) {
-                        printDisplay(uid+": "+msg.message);
-                        broadcasting(msg);
-                    }
-                    else if (msg.mode == Send.MODE_IN_ROOM){
-                        msg.mode = Send.MODE_RETURN;
-                        userList.add(msg.userID);
-                        msg.users = userList;
-                        System.out.println(userList);
-                        System.out.println(msg.users);
-                        broadcasting(new Send(userList, Send.MODE_RETURN));
                     }
                         /*else if(msg.mode == Send.MODE_DEL_ROOM){
                             System.out.println("딜리트메세지 서버에옴"+msg.userID+"  "+rooms.get(msg.roomNum).getId());
@@ -231,7 +218,7 @@ public class Server extends JFrame {
                         }*/
                 }
                 users.removeElement(this);
-                printDisplay(uid + "퇴장. 현재 참가자 수: "+ users.size());
+                printDisplay(uid + "퇴장. 현재 참가자 수: " + users.size());
 
 
             } catch (IOException e) {
@@ -239,13 +226,6 @@ public class Server extends JFrame {
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            }finally {
-                try {
-                    socket.close();
-                    users.remove(this);
-                } catch (IOException e) {
-                    printDisplay(e.getMessage());
-                }
             }
         }
         private void sendAd(Send msg){
@@ -267,9 +247,7 @@ public class Server extends JFrame {
                 c.send(msg);
         }
 
-        public void run() {
-            receiveMessages(clientSocket);
-        }
+
 
     }
 

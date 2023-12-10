@@ -18,7 +18,7 @@ public class RoomList implements Serializable {
 
     int select = 0;
 
-
+    JFrame jf = new JFrame();
     JTextField chatField;
     JButton sendButton;
     JPanel chatPanel;
@@ -31,8 +31,8 @@ public class RoomList implements Serializable {
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
-    static private Vector<String> roomList = new Vector<>(10);
-    static private Vector<Vector<String>> idv = new Vector<Vector<String>>(10);
+    static private Vector<String> roomList = new Vector<>();
+    static private Vector<Vector<String>> idv = new Vector<Vector<String>>();
     DefaultListModel<String> listModel;
     JList<String> roomLists;
     JScrollPane scrollPane;
@@ -49,20 +49,22 @@ public class RoomList implements Serializable {
     void connectToServer() {
         // 서버에 연결하는 로직 구현
         receiveThread = new Thread(new Runnable() {
-            void receiveMessage() {
+
+            @Override
+            public void run() {
                 try {
-                    Send inMsg = (Send) in.readObject();
-                    if(inMsg!=null) {
-                        // 메시지를 계속 읽어 들임
+                    Send inMsg;
+                    while ((inMsg = (Send) in.readObject()) != null) {
+                        System.out.println(inMsg.getClass().getName());
                         switch (inMsg.mode) {
                             case Send.MODE_CT_ROOM:
-                                System.out.println("방생성 클라 룸번호" + inMsg.roomName);
-                                listModel.addElement(inMsg.roomName);
-                                idv = inMsg.idv;
-                                roomList = inMsg.roomList;
+                                System.out.println("방생성 클라 룸번호" + inMsg.roomNum);
+                                listModel.addElement(inMsg.roomName);//리스트 추가
+                                idv = inMsg.idv; //방갯수 세팅
+                                roomList = inMsg.roomList; // 리스트 셋팅
                                 if (inMsg.userID.equals(id)) {
-                                    createRoom(inMsg.userID, inMsg.roomNum);
-                                    send(new Send(id, roomList, roomName, idv, idv.size(), Send.MODE_IN_ME));
+                                    System.out.println(roomList);
+                                    createRoom(inMsg.userID, idv.size()-1); //1번, 룸넘버
                                     frame.setVisible(false);
                                 } else {
                                     System.out.println("다른 유저가 방을 추가함.");
@@ -71,13 +73,10 @@ public class RoomList implements Serializable {
                             case Send.MODE_ENTER_ROOM: //방입장
                                 System.out.println("방입장 클라 룸번호" + inMsg.roomNum);
                                 idv = inMsg.idv;
-                                roomList = inMsg.roomList;
                                 if (inMsg.userID.equals(id)) {//같은유저
                                     createRoom(inMsg.userID, inMsg.roomNum);
                                     frame.setVisible(false);
                                 }
-                                send(new Send(id, inMsg.roomNum, inMsg.roomName, Send.MODE_IN_ME));
-                                newLabel(inMsg.roomNum);
                                 break;
                         /*case Send.MODE_ENTER_HUMAN:// 동시성 제어
                             if (!room.idv.contains(inMsg.userID)) {
@@ -89,7 +88,7 @@ public class RoomList implements Serializable {
                             case Send.MODE_IN_ME:
                                 System.out.println("인미클라 룸버호" + inMsg.roomNum);
                                 idv = inMsg.idv;
-                                newLabel(inMsg.roomNum);
+                                newLabel(inMsg.roomNum+1,inMsg.roomName);
                                 break;
                             case Send.MODE_DEL_ROOM:
                                 listModel.remove(inMsg.roomNum);
@@ -113,21 +112,6 @@ public class RoomList implements Serializable {
                     System.out.println("이ㅇ");
                 } catch (ClassNotFoundException e) {
                     System.out.println("잘못된 객체가 전달되었습니다.");
-                }finally {
-                    try {
-                        if (socket != null) {
-                            socket.close();
-                        }
-                    } catch (IOException e) {
-                        System.err.println("소켓 종료 중 오류: " + e.getMessage());
-                    }
-                }
-            }
-
-            @Override
-            public void run() {
-                while (receiveThread == Thread.currentThread()) {
-                    receiveMessage();
                 }
             }
         });
@@ -135,10 +119,6 @@ public class RoomList implements Serializable {
     }
     RoomList(String id, String pw, Socket socket, ObjectInputStream in, ObjectOutputStream out) {
 
-
-        if (socket == null || in == null || out == null) {
-            throw new IllegalArgumentException("Socket and Streams must not be null");
-        }
         this.out = out;
         this.in = in;
         this.socket = socket;
@@ -193,8 +173,7 @@ public class RoomList implements Serializable {
                 select = roomLists.getSelectedIndex();
                 if (select > -1) {
                     System.out.println("셀렉  " + select);
-                    send(new Send(id, roomList, roomName, idv, select + 1, Send.MODE_ENTER_ROOM));
-                    System.out.println(listModel.get(select));
+                    send(new Send(id, roomList, roomName, idv, select, Send.MODE_ENTER_ROOM));
                 }
             }
         });
@@ -256,13 +235,13 @@ public class RoomList implements Serializable {
     void createRoom(String id,int select) {
         if (!idv.get(select).contains(id))
             idv.get(select).add(id);
-
+        send(new Send(id, roomList, roomName, idv, select-1, Send.MODE_IN_ME));
 
 
         this.roomNum = select;
 
 
-        JFrame jf = new JFrame();
+
         jf.setTitle("Room with Grid and Chat Panel");
 
 
@@ -310,25 +289,21 @@ public class RoomList implements Serializable {
     private void initializeLabels() {
         gridPanel = new JPanel(new GridLayout(10, 2)); // gridPanel을 초기화합니다.
         for (int i = 0; i < label.length; i++) {
-            if (i < idv.size()) {
-                label[i] = new JLabel(i+1 + " " + idv.get(i));
-            } else {
-                label[i] = new JLabel(String.valueOf(i+1));
-            }
-
+            label[i] = new JLabel(String.valueOf(i+1));
             // 색상 설정
             configureLabelColor(label[i], i);
-
             gridPanel.add(label[i]);
         }
     }
 
 
-    private void newLabel(int rm) { //ct시 rm  = 1
+    public void newLabel(int rm,String roomName) { //ct시 rm  = 1
         System.out.println(rm);
+        jf.setTitle(roomName);
+        System.out.println(idv.get(rm));
         for (int i = 0; i < label.length; i++) {
-            if (i<idv.get(rm-1).size())
-                label[i].setText(i + " " + (idv.elementAt(rm-1)).elementAt(i));
+            if (idv.get(rm).size()>i)
+                label[i].setText(i+1 + " " + (idv.elementAt(rm)).elementAt(i));
             else
                 label[i].setText(String.valueOf(i+1));
         }
