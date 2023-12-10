@@ -5,17 +5,33 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
-public class RoomList {
+
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
+
+public class RoomList implements Serializable {
     JFrame frame;
     int roomNum;
+    int roomSize;
     String id;
     String pw;
+
     int select;
+
+
+    JTextField chatField;
+    JButton sendButton;
+    JPanel chatPanel;
+    JLabel[] label;
+    JPanel gridPanel;
+    String roomName;
+
+
     private Socket socket;
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
     static private Vector<String> roomList = new Vector<>();
+    static private Vector<Vector<String>> idv = new Vector<Vector<String>>();
     DefaultListModel<String> listModel;
     JList<String> roomLists;
     JScrollPane scrollPane;
@@ -39,23 +55,41 @@ public class RoomList {
                     switch (inMsg.mode) {
                         case Send.MODE_CT_ROOM:
                             listModel.addElement(inMsg.roomName);
+                            idv = inMsg.idv;
+                            roomList = inMsg.roomList;
                             if(inMsg.userID.equals(id)) {
-                                inMsg.room.createRoom(id,select, socket, in, out);
-                                frame.dispose();
+                                createRoom(inMsg.userID,inMsg.roomNum);
+                                send(new Send(id,roomList,roomName,idv, roomList.size(),Send.MODE_IN_ME));
+                                frame.setVisible(false);
                             }
-                            System.out.println("방생성 메세지옴");
+                            else{
+                                System.out.println("다른 유저가 방을 추가함.");
+                            }
                             break;
-                        case Send.MODE_ENTER_ROOM:
-                           // 동시성 제어
-                                if (inMsg.userID.equals(id)) {
-                                    Room room = inMsg.room;
-                                    room.createRoom(id,select, socket, in, out);
-                                    frame.dispose();
-                                }
+                        case Send.MODE_ENTER_ROOM: //방입장
+                            idv = inMsg.idv;
+                            roomList = inMsg.roomList;
+                            if (inMsg.userID.equals(id)) {//같은유저
+                                createRoom(inMsg.userID,inMsg.roomNum);
+                                frame.setVisible(false);
+                            }
+                            send(new Send(id,inMsg.roomNum,inMsg.roomName,Send.MODE_IN_ME));
+                            newLabel(inMsg.roomNum);
+                            break;
+                        /*case Send.MODE_ENTER_HUMAN:// 동시성 제어
+                            if (!room.idv.contains(inMsg.userID)) {
+                                room.idv.add(inMsg.userID);
+                            } else {
+                                System.out.println("이미 존재하는 사용자 ID: " + inMsg.userID);
+                            }
+                            break;*/
+                        case Send.MODE_IN_ME:
+                            idv = inMsg.idv;
+                            newLabel(inMsg.roomNum);
                             break;
                         case Send.MODE_DEL_ROOM:
-                                listModel.remove(inMsg.roomNum);
-                                System.out.println("방제거 메세지옴");
+                            listModel.remove(inMsg.roomNum);
+                            System.out.println("방제거 메세지옴");
                             break;
                         case Send.MODE_ERROR:
                             System.out.println("error");
@@ -63,7 +97,6 @@ public class RoomList {
                         case Send.MODE_IN_ROOM:
                             roomList = inMsg.roomList;
                             if (roomList.size() > 0) {
-                                roomNum = roomList.size();
                                 for (String name : roomList) {
                                     listModel.addElement(name);
                                 }
@@ -88,6 +121,7 @@ public class RoomList {
         receiveThread.start();
     }
     RoomList(String id, String pw, Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+
 
         if (socket == null || in == null || out == null) {
             throw new IllegalArgumentException("Socket and Streams must not be null");
@@ -118,7 +152,7 @@ public class RoomList {
         statusBar = new JLabel("Status: Connected");
         panel.add(statusBar, BorderLayout.SOUTH);
 
-        add.addActionListener(new ActionListener() {
+        add.addActionListener(new ActionListener() { // 방추가
             @Override
             public void actionPerformed(ActionEvent e) {
                 JPanel dialogPanel = new JPanel();
@@ -134,8 +168,7 @@ public class RoomList {
                 if (result == JOptionPane.OK_OPTION) {
                     String roomName = roomNameField.getText().trim();
                     if (!roomName.isEmpty()) {
-                        Room room = new Room(roomName,id);
-                        send(new Send(id, room, roomName, roomNum, Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
+                        send(new Send(id,roomList,roomName,idv, idv.size(),Send.MODE_CT_ROOM)); //id,룸, 룸이름, 룸넘버, 룸생성코드
                     }
                 }
             }
@@ -145,7 +178,7 @@ public class RoomList {
             public void actionPerformed(ActionEvent e) {
                 select = roomLists.getSelectedIndex();
                 if (select > -1)
-                    send(new Send(id, select, Send.MODE_ENTER_ROOM)); // 사용자아이디, 선택, 들어가기모드코드
+                    send(new Send(id,roomList,roomName,idv, select,Send.MODE_ENTER_ROOM));
                 System.out.println(listModel.get(select));
             }
         });
@@ -185,5 +218,110 @@ public class RoomList {
         connectToServer();
         send(new Send(id, pw, Send.MODE_IN_ROOM));
     }
+
+
+
+
+
+
+
+
+
+
+    Vector<Vector<String>> getIdVec() {
+        return this.idv;
+    }
+
+
+    String getRoomName() {
+        return roomName;
+    }
+
+    void createRoom(String id,int select) {
+        if (!idv.get(select).contains(id))
+            idv.get(select).add(id);
+
+
+
+        this.roomNum = select;
+
+
+        JFrame jf = new JFrame();
+        jf.setTitle("Room with Grid and Chat Panel");
+
+
+        jf.setLayout(new BorderLayout());
+        initializeLabels();
+
+        // 채팅 패널 생성 및 구성
+        chatPanel = new JPanel(new BorderLayout());
+        chatPanel.setPreferredSize(new Dimension(400, 75)); // 채팅 패널의 선호되는 크기를 조금 줄임
+        chatField = new JTextField();
+
+        sendButton = new JButton("Send");
+        chatPanel.add(chatField, BorderLayout.CENTER);
+        chatPanel.add(sendButton, BorderLayout.EAST);
+
+        // 패널들을 프레임에 추가
+        jf.add(gridPanel, BorderLayout.CENTER);
+
+        jf.add(chatPanel, BorderLayout.SOUTH);
+
+        // 창의 기본 크기 설정을 조금 줄임
+        jf.setSize(350, 400);
+
+        // 창을 화면 가운데에 위치시키기
+        jf.setLocationRelativeTo(null);
+
+        // 창을 보이게 설정
+        jf.setVisible(true);
+
+
+        connectToServer();
+
+        // 창을 닫았을 때 프로그램이 종료되도록 설정
+        jf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
+    private void configureLabelColor(JLabel label, int index) {
+        if (index == 1) {
+            label.setOpaque(true);
+            label.setBackground(Color.red);
+            label.setForeground(Color.yellow);
+        } else if (index == 2) {
+            label.setOpaque(true);
+            label.setBackground(Color.blue);
+            label.setForeground(Color.yellow);
+        }
+    }
+    private void initializeLabels() {
+        label = new JLabel[21];
+        gridPanel = new JPanel(new GridLayout(10, 2)); // gridPanel을 초기화합니다.
+
+        for (int i = 1; i < label.length; i++) {
+            if (i <= idv.size()) {
+                label[i] = new JLabel(i + " " + idv.get(i - 1));
+            } else {
+                label[i] = new JLabel(String.valueOf(i));
+            }
+
+            // 색상 설정
+            configureLabelColor(label[i], i);
+
+            gridPanel.add(label[i]);
+        }
+    }
+    private void newLabel(int rm) {
+        for (int i = 1; i < label.length; i++) {
+            if (i < idv.get(rm).size()) {
+                label[i].setText(i + " " + idv.get(rm).get(i));
+            } else {
+                label[i].setText(String.valueOf(i));
+            }
+        }
+
+    }
+
+
+
 
 }

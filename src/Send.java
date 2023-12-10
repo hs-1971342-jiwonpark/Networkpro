@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Vector;
 
 public class Send implements Serializable {
@@ -26,13 +25,12 @@ public class Send implements Serializable {
     String userID;
     int mode;
     String message;
-    Vector<String> idv = new Vector<>();
+     Vector<String> roomList = new Vector<>();
+    Vector<Vector<String>> idv = new Vector<Vector<String>>();
     ImageIcon image;
     long size;
     String roomName;
-    Vector<String> roomList = new Vector<>();
     int roomNum;
-    Room room;
     int selectIndex;
 
     void setName(String name){
@@ -44,24 +42,26 @@ public class Send implements Serializable {
         this.mode = code;
     }
 
-    public Send(String id,Room room,String roomName, int roomNum, int code){
+   /* public Send(String id, RoomList.Room room, String roomName, int roomNum, int code){
         this.userID =id;
         this.room = room;
         this.roomName = roomName;
         this.roomNum = roomNum;
         this.mode = code;
-    }
-    public Send(String id,String roomName, int roomNum, int code){
+    }*/
+    public Send(String id,Vector<String>roomList,String roomName,Vector<Vector<String>> idArr, int roomNum, int code){
         this.userID =id;
+        this.roomList = roomList;
         this.roomName = roomName;
         this.roomNum = roomNum;
         this.mode = code;
+        this.idv = idArr;
     }
-    public Send(String id, Vector<String>idv,int mode){
+   /* public Send(String id, Vector<String>idv,int mode){
         this.mode = mode;
         this.idv = idv;
         this.userID = id;
-    }
+    }*/
     public Send(String id,int roomNum,String roomName,int mode){
         this.userID = id;
         this.roomNum = roomNum;
@@ -71,9 +71,9 @@ public class Send implements Serializable {
     public Send(int mode){
         this.mode = mode;
     }
-    public void setRoom(Room room) {
+   /* public void setRoom(RoomList.Room room) {
         this.room = room;
-    }
+    }*/
 
     public Send(Pos pos){
         this.pos = pos;
