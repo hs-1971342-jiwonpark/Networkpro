@@ -184,15 +184,9 @@ public class Server extends JFrame {
                     else if (msg.mode == Send.MODE_IN_ROOM){
                         msg.mode = Send.MODE_RETURN;
                         System.out.println(userList.size());
-                        if(userList.size() == 0) {
-                            for (ClientHandler c : users)
-                                if (c.uid.equals(msg.userID))
-                                    c.cor = Cor.white;
-                        }
-                        else if(userList.size()==1){
-                            for(ClientHandler c : users)
-                                if(c.uid.equals(msg.userID))
-                                    c.cor= Cor.black;
+                        if(users.size()==2){
+                           users.get(0).cor = Cor.white;
+                           users.get(1).cor =Cor.black;
                         }
                         else{
                             this.cor =null;
@@ -202,10 +196,11 @@ public class Server extends JFrame {
                         System.out.println(userList);
                         System.out.println(msg.users);
                         if(users.size() ==2){
-                            broadcasting(new Send(this.cor,Send.MODE_ENTER_HUMAN));
+                            users.elementAt(0).send(new Send(users.elementAt(0).cor,Send.MODE_ENTER_HUMAN));
+                            users.elementAt(1).send(new Send(users.elementAt(1).cor,Send.MODE_ENTER_HUMAN));
                         }
                         else if(users.size()>2){
-                            send(new Send(this.cor,Send.MODE_ENTER_HUMAN));
+                            sendAd(new Send(this.cor,Send.MODE_ENTER_HUMAN));
                         }
                         else
                             broadcasting(new Send(userList, Send.MODE_RETURN));
@@ -270,7 +265,7 @@ public class Server extends JFrame {
         }
         private void sendAd(Send msg){
             for(ClientHandler c : users)
-                if(c.uid.equals(msg.userID))
+                if(c.uid.equals(this.uid))
                     send(msg);
         }
         private void send(Send msg) {

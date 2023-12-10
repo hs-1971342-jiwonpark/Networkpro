@@ -21,6 +21,8 @@ public class Room {
     JPanel gridPanel = new JPanel();
     String id;
     String pw;
+
+    Cor cor;
     private Socket socket;
     private ObjectOutputStream out;
     private Thread receiveThread;
@@ -40,40 +42,36 @@ public class Room {
     void connectToServer() {
         // 서버에 연결하는 로직 구현
         receiveThread = new Thread(new Runnable() {
-            void receiveMessage() {
-                try {
-                    Send inMsg = (Send) in.readObject();
-                    if (inMsg != null) {
-                        switch (inMsg.mode) {
-                            case Send.MODE_RETURN:
-                                System.out.println(inMsg.users);
-                                System.out.println(userList);
-                                for(String a : inMsg.users)
-                                    if(!userList.contains(a))
-                                        userList.add(a);
-                                initializeLabels();
-                                break;
-                            case Send.MODE_ENTER_HUMAN:
-                                System.out.println(inMsg.cor);
-                                new StartFrame(socket,in,out,inMsg.cor);
-                                exit();
-                                Thread.currentThread().interrupt();
-                                break;
-
-                        }
-                    }
-                } catch (IOException e) {
-                    System.out.println("이ㅇ");
-                } catch (ClassNotFoundException e) {
-                    System.out.println("잘못된 객체가 전달되었습니다.");
-                }
-            }
-
             @Override
             public void run() {
-                while (receiveThread == Thread.currentThread()) {
-                    receiveMessage();
-                }
+                    try {
+                        Send inMsg;
+                        while ((inMsg = (Send)in.readObject()) != null) {
+                            if (inMsg.mode == Send.MODE_RETURN) {
+                                System.out.println(inMsg.users);
+                                System.out.println(userList);
+                                for (String a : inMsg.users)
+                                    if (!userList.contains(a))
+                                        userList.add(a);
+                                initializeLabels();
+                            } else if (inMsg.mode == Send.MODE_ENTER_HUMAN) {
+                                System.out.println(inMsg.cor);
+                                if (inMsg.cor == Cor.black)
+                                    Thread.sleep(100);
+                                new StartFrame(socket, in, out, inMsg.cor);
+                                Thread.currentThread().interrupt();
+                                exit();
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        System.out.println(e.getMessage());
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        System.out.println("잘못된 객체가 전달되었습니다.");
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
             }
         });
         receiveThread.start();
