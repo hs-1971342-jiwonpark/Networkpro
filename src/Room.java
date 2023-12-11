@@ -1,194 +1,186 @@
+
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.net.InetSocketAddress;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
-import java.net.SocketAddress;
+import java.util.Vector;
 
-public class Room extends JFrame {
-    private static String serverAddress = "localhost";
-    private static int serverPort = 54321;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
+
+public class Room {
+
+    JFrame jf;
+    JTextField chatField;
+    JButton sendButton;
+    JPanel chatPanel;
+    JLabel[] label = new JLabel[2];
+    JPanel gridPanel = new JPanel();
+    String id;
+    String pw;
+
+    Cor cor;
     private Socket socket;
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
-    JTextField chatField;
-    JButton sendButton;
-    JPanel chatPanel;
-    JLabel jb2;
-    JLabel jb1;
-    JPanel gridPanel;
-    JLabel label[];
+    static private Vector<String> userList = new Vector<String>();
 
+    private int turn;
 
-    void sendMessage() {
-    }
-    void disconnect(String id, String pw){
-        send(new Send(id,pw,Send.MODE_LOGOUT));
+    private void send(Send msg) {
         try {
-            receiveThread=null;
-            socket.close();
-
-        } catch (IOException e) {
-            System.err.println("클라이언트 닫기 오류 " + e.getMessage());
-            System.exit(-1);
-        }
-    }
-
-
-
-    private void send(Send send) {
-        try {
-            out.writeObject(send);
+            out.writeObject(msg);
             out.flush();
         } catch (IOException e) {
-            System.out.println("클라이언트 일반 전송 오류"+e.getMessage());
+            System.err.println("클라이언트 일반 전송 오류" + e.getMessage());
         }
     }
-    private void checkedLogin(){
+
+    void connectToServer() {
         // 서버에 연결하는 로직 구현
-        try {
-            socket = new Socket();
-            SocketAddress sa = new InetSocketAddress(serverAddress, serverPort);
-            socket.connect(sa,3000);
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            receiveThread = new Thread(new Runnable(){
-                private ObjectInputStream in;
-                void receiveMessage() {
-                    try {
-                        Send inMsg = (Send)in.readObject();
-                        while(inMsg == null) {  // 메시지를 계속 읽어 들임
-                            System.out.println("클라이언트 일반 전송 오류");
-                            return;
+        receiveThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Send inMsg;
+                    while ((inMsg = (Send) in.readObject()) != null) {
+                        if (inMsg.mode == Send.MODE_RETURN) {
+                            if(id.equals(inMsg.userID)) {
+                                turn = inMsg.turn;
+                            }
+                            for (String a : inMsg.users) {
+                                if (!userList.contains(a)) {
+                                    userList.add(a);
+                                }
+                            }
+                            System.out.println(inMsg.cor);
+                            if (userList.size()%2==1) {
+                                sendButton.setText("Ready");
+                            } else {
+                                sendButton.setText("Go");
+                            }
+                            initializeLabels();
+
+                        } else if (inMsg.mode == Send.MODE_ENTER_HUMAN) {
+
                         }
-                        if(inMsg.mode == Send.MODE_LOGIN){
-                            new StartFrame();
+                        else if(inMsg.mode==Send.RESULT_OK){
+                            System.out.println("시작버튼 받음");
+                            System.out.println(inMsg.cor);
+                            if (inMsg.cor == Cor.black)
+                                Thread.sleep(100);
+                            new StartFrame(socket,in,out,inMsg.cor);
+                            Thread.currentThread().interrupt();
+                            //exit();
+                            break;
                         }
-                        else{
-                            System.out.println("dd");
-                        }
-                    } catch(IOException e) {
-                        System.out.println(e.getMessage());
-                    } catch(ClassNotFoundException e) {
-                        System.out.println(e.getMessage());
                     }
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("잘못된 객체가 전달되었습니다.");
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-                @Override
-                public void run() {
-                    try {
-                        in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                    }catch(IOException e) {
-                        System.out.println("입력 스트림이 열리지 않음");
-                    }
-                    while(receiveThread == Thread.currentThread()) {
-                        receiveMessage();
-                    }
-                }
-            });
-            receiveThread.start();
-        }
-        catch (IOException e) {
-            socket = new Socket();
-            SocketAddress sa = new InetSocketAddress(serverAddress,serverPort);
-            try {
-                socket.connect(sa,3000);
-            } catch (IOException e1) {
-                e1.printStackTrace();
             }
-        }
-        sendMessage();
-    }
-    private ImageIcon resizeImage(ImageIcon originalImage, int targetWidth, int targetHeight) {
-        Image img = originalImage.getImage();
-        Image resizedImg = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-        return new ImageIcon(resizedImg);
+        });
+        receiveThread.start();
     }
 
+    Room(String id, String pw, Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+
+        this.out = out;
+        this.in = in;
+        this.socket = socket;
+        this.id = id;
+        this.pw = pw;
+        createRoom();
+    }
+
+    void createRoom() {
+        jf = new JFrame();
+        jf.setTitle("Room with Grid and Chat Panel");
 
 
-
-
-
-
-
-
-
-
-
-    public Room() {
-
-        // 창의 제목 설정
-        setTitle("Room with Grid and Chat Panel");
-
-        // 레이아웃을 BorderLayout으로 설정
-        setLayout(new BorderLayout());
-
-//        try {
-//            Send inMsg = (Send)in.readObject();
-//            while(inMsg == null) {  // 메시지를 계속 읽어 들임
-//                System.out.println("클라이언트 일반 전송 오류");
-//                return;
-//            }
-//            if(inMsg.mode == Send.MODE_LOGIN){
-//                new StartFrame();
-//            }
-//            else{
-//                System.out.println("dd");
-//            }
-//        } catch(IOException e) {
-//            System.out.println(e.getMessage());
-//        } catch(ClassNotFoundException e) {
-//            System.out.println(e.getMessage());
-//        }
-
-        // 그리드 패널 생성 및 구성
-        gridPanel = new JPanel(new GridLayout(10 , 2));
-        // 첫 번째 라벨 설정
-        jb1 = new JLabel("1");
-        jb1.setOpaque(true);
-        jb1.setBackground(Color.red);
-        jb1.setForeground(Color.yellow);
-        gridPanel.add(jb1); // 그리드 패널에 라벨 추가
-        // 첫 번째 라벨 설정
-        jb2 = new JLabel("2");
-        jb2.setOpaque(true);
-        jb2.setBackground(Color.blue);
-        jb2.setForeground(Color.yellow);
-        gridPanel.add(jb2); // 그리드 패널에 라벨 추가
-        label = new JLabel[21];
-        // 2부터 8까지의 라벨 추가 (배경색 없음)
-        for (int i = 3; i <= 20; i++) {
-            label[i] = new JLabel(Integer.toString(i));
-            gridPanel.add(label[i]);
-        }
-
+        jf.setLayout(new BorderLayout());
+        gridPanel.setLayout(new GridLayout(0, 2)); // 레이아웃 재설정
+        initializeLabels();
         // 채팅 패널 생성 및 구성
         chatPanel = new JPanel(new BorderLayout());
         chatPanel.setPreferredSize(new Dimension(400, 75)); // 채팅 패널의 선호되는 크기를 조금 줄임
         chatField = new JTextField();
-        sendButton = new JButton("Send");
+
+        sendButton = new JButton();
         chatPanel.add(chatField, BorderLayout.CENTER);
         chatPanel.add(sendButton, BorderLayout.EAST);
 
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(sendButton.getText().equals("Go"))
+                    send(new Send(turn,Send.RESULT_OK));
+            }
+        });
+
+
         // 패널들을 프레임에 추가
-        add(gridPanel, BorderLayout.CENTER);
-        add(chatPanel, BorderLayout.SOUTH);
+        jf.add(gridPanel, BorderLayout.CENTER);
+        jf.add(chatPanel, BorderLayout.SOUTH);
 
         // 창의 기본 크기 설정을 조금 줄임
-        setSize(350, 400);
+        jf.setSize(350, 400);
 
         // 창을 화면 가운데에 위치시키기
-        setLocationRelativeTo(null);
-
+        jf.setLocationRelativeTo(null);
         // 창을 보이게 설정
-        setVisible(true);
-
-        // 창을 닫았을 때 프로그램이 종료되도록 설정
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jf.setVisible(true);
+        connectToServer();
+        send(new Send(id, userList, Send.MODE_IN_ROOM));
+        jf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
-    public static void main(String[] args) {
-        // Room 클래스의 인스턴스를 생성하여 창을 띄움
-        new Room();
+    private void configureLabelColor(JLabel label, int index) {
+        if (index == 0) {
+            label.setOpaque(true);
+            label.setBackground(Color.white);
+            label.setForeground(Color.black);
+        } else if (index == 1) {
+            label.setOpaque(true);
+            label.setBackground(Color.black);
+            label.setForeground(Color.white);
+        }
     }
+
+    public void initializeLabels() {
+
+        gridPanel.removeAll(); // 기존 레이블 제거
+
+
+        int labelCount = Math.max(2, userList.size()); // 최소 2개의 레이블을 유지
+        label = new JLabel[labelCount]; // 레이블 배열을 labelCount 크기에 맞게 초기화
+
+        for (int i = 0; i < labelCount; i++) {
+            if (i < userList.size()) {
+                label[i] = new JLabel("i: " + userList.get(i).toString()); // userList의 요소를 사용하여 레이블 생성
+            } else {
+                label[i] = new JLabel(String.valueOf(i + 1)); // 사용자가 없을 경우 순서 번호만 표시
+            }
+            configureLabelColor(label[i], i % 2); // 색상 설정
+            gridPanel.add(label[i]); // gridPanel에 레이블 추가
+        }
+
+        gridPanel.revalidate(); // 레이아웃 업데이트
+        gridPanel.repaint(); // 다시 그리기
+    }
+
+    public void exit() {
+        jf.dispose();
+    }
+
 }

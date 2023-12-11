@@ -4,33 +4,40 @@ import java.util.Arrays;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class Rook extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+    ChessPane pane;
     Rook(){
         this.name = "rook";
     }
 
-    Rook(Cor cor, ChessPane chessPane) {
+    Rook(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
         this.chessPane = chessPane;
     }
+    Rook(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString()+"_"+this.name+".png");
+        this.pane = chessPane;
+    }
 
-    Rook(Pos pos, Cor cor, ChessPane chessPane) {
+    Rook(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble= new Pos[]{
                 new Pos(0, this.pos.x), new Pos(7, this.pos.x),
                 new Pos(this.pos.y, 0), new Pos(this.pos.y, 7)
-                };
+        };
     }
 
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j,0);
-        chessPane.grid[j][0].setPiece((ChessPiece)this);
+        pane.grid[j][0].setPiece((ChessPiece)this);
         this.pos = new Pos(j,7);
-        chessPane.grid[j][7].setPiece((ChessPiece)this);
+        pane.grid[j][7].setPiece((ChessPiece)this);
     }
 
 
@@ -109,8 +116,8 @@ public class Rook extends ChessPiece {
                 chessPane.grid[this.pos.y][x].setBackground(Color.WHITE);
             else
                 chessPane.grid[this.pos.y][x].setBackground(new Color(0xCCA63D));
-            }
-            //  만약 말이있고 그게 플레이어의 색과 다르면
+        }
+        //  만약 말이있고 그게 플레이어의 색과 다르면
         for(int x = this.pos.x -1; x >= 0; x--){
             if ((this.pos.y + x) % 2 == 0)
                 chessPane.grid[this.pos.y][x].setBackground(Color.WHITE);
@@ -133,8 +140,4 @@ public class Rook extends ChessPiece {
         }
     }
 
-
-    public void promotion(){
-        
-    }
 }

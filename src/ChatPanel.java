@@ -5,18 +5,13 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
-
 public class ChatPanel extends JPanel {
     private JTextArea chatArea;
     private JTextField inputField;
     private JButton sendButton;
-
-
-
     private Thread acceptThread = null;
     private int port;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
-
     public ChatPanel() {
         createUI();
         this.port = port;
@@ -47,10 +42,8 @@ public class ChatPanel extends JPanel {
                         break;
                     } else if (msg.mode == Send.MODE_TX_STRING) {
                         message = uid + ": " + msg.message;
-
                         System.out.println(message);
                         broadcasting(msg);
-
                     } else if (msg.mode == Send.MODE_TX_IMAGE) {
                         System.out.println(uid + ": " + msg.message);
                         broadcasting(msg);

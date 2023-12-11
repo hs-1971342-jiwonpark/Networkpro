@@ -11,13 +11,13 @@ import java.net.UnknownHostException;
 import javax.imageio.ImageIO;
 
 public class LoginFr extends JFrame {
-    String id;
-    String pw;
+    String id; // id
+    String pw; // pw
     JPasswordField pwTextField = new JPasswordField(20);
     JTextField idTextField = new JTextField(20);
-    private static String serverAddress;
-    private static int serverPort;
-    private Socket socket;
+    private static String serverAddress; //서버주소
+    private static int serverPort; //포트번호
+    private Socket socket; //소켓
     private ObjectOutputStream out;
     private Thread receiveThread;
     private ObjectInputStream in;
@@ -34,7 +34,6 @@ public class LoginFr extends JFrame {
         try {
             receiveThread=null;
             socket.close();
-
         } catch (IOException e) {
             System.err.println("클라이언트 닫기 오류 " + e.getMessage());
             System.exit(-1);
@@ -57,7 +56,6 @@ public class LoginFr extends JFrame {
             SocketAddress sa = new InetSocketAddress(serverAddress, serverPort);
             socket.connect(sa, 3000);
             out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-
         }catch (UnknownHostException e) {
             System.err.println("알 수 없는 서버> " + e.getMessage());
         } catch (IOException e) {
@@ -74,7 +72,9 @@ public class LoginFr extends JFrame {
         }
         send(new Send(id,pw,Send.MODE_LOGIN));
     }
-    JPanel createPane (){
+
+
+    JPanel createPane(){
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -148,33 +148,34 @@ public class LoginFr extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 checkedLogin();
-                try {
-                    in = new ObjectInputStream(socket.getInputStream());
-                    Send inMsg;
-                    while ((inMsg = (Send)in.readObject())==null);
-                    if(inMsg.mode == Send.MODE_LOGIN){
-                        new StartFrame();
+                Thread thread = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            in = new ObjectInputStream(socket.getInputStream());
+                            Send inMsg;
+                            while ((inMsg = (Send) in.readObject()) != null) {
+                                if (inMsg.mode == Send.MODE_LOGIN) {
+                                    System.out.println(inMsg.userID);
+                                    System.out.println(inMsg.mode);
+                                    new Room(id,pw,socket,in,out);
+                                    dispose();
+                                    break;
+                                } else {
+                                    System.out.println("r");
+                                }
+                            }
+                            Thread.currentThread().interrupt();
+                        } catch (IOException |
+                                 ClassNotFoundException e1) {
+                            System.out.println("e1.getMessage()");
+                        }
                     }
-                    else{
-                        System.out.println("dd");
-                    }
-                } catch(IOException e1) {
-                    System.out.println(e1.getMessage());
-                } catch(ClassNotFoundException e2) {
-                    System.out.println(e2.getMessage());
-                }
+
+                });
+                thread.start();
             }
+
         });
-
-
-
-
-
-
-
-
-
-
 
 
 

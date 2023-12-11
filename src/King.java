@@ -3,20 +3,26 @@ import java.awt.*;
 
 // 폰(Pawn) 클래스는 ChessPiece 클래스를 상속합니다.
 public class King extends ChessPiece {
-    private ChessPane chessPane;
+    private StartFrame chessPane;
+    ChessPane pane;
 
     King() {
         this.name = "king";
     }
 
-    King(Cor cor, ChessPane chessPane) {
+    King(Cor cor, StartFrame chessPane) {
         this();
         this.color = cor;
         this.pieceImg = new ImageIcon(this.color.toString() + "_" + this.name + ".png");
         this.chessPane = chessPane;
     }
-
-    King(Pos pos, Cor cor, ChessPane chessPane) {
+    King(Cor cor, ChessPane chessPane) {
+        this();
+        this.color = cor;
+        this.pieceImg = new ImageIcon(this.color.toString() + "_" + this.name + ".png");
+        this.pane = chessPane;
+    }
+    King(Pos pos, Cor cor, StartFrame chessPane) {
         this(cor, chessPane);
         this.pos = pos;
         this.possble = new Pos[]{
@@ -30,7 +36,7 @@ public class King extends ChessPiece {
     protected void initPos() {
         int j = (this.color == Cor.white) ? 7 : 0;
         this.pos = new Pos(j, 3);
-        chessPane.grid[j][4].setPiece((ChessPiece) this);
+        pane.grid[j][4].setPiece((ChessPiece) this);
     }
 
 
@@ -83,12 +89,12 @@ public class King extends ChessPiece {
     }
 
     protected void Clear_Move_possible() {
-        for (int i = 0; i < ChessPane.DIMENSION; i++) {
-            for (int j = 0; j < ChessPane.DIMENSION; j++) {
+        for (int i = 0; i < StartFrame.DIMENSION; i++) {
+            for (int j = 0; j < StartFrame.DIMENSION; j++) {
                 if ((i + j) % 2 == 0)
-                    ChessPane.grid[i][j].setBackground(Color.WHITE);
+                    StartFrame.grid[i][j].setBackground(Color.WHITE);
                 else {
-                    ChessPane.grid[i][j].setBackground(new Color(0xCCA63D));
+                    StartFrame.grid[i][j].setBackground(new Color(0xCCA63D));
                 }
             }
         }
@@ -107,11 +113,11 @@ public class King extends ChessPiece {
         //왼쪽 룩과 킹
         for (int i = 0; i < chessPane.turn.size() - 1; i++) {
             ChessPiece[][] cp = chessPane.turn.elementAt(i);
-            if (cp[NonY][0] != null || ChessPane.grid[NonY][0].havePiece != cp[NonY][0]) {
+            if (cp[NonY][0] != null || chessPane.grid[NonY][0].havePiece != cp[NonY][0]) {
                 leftCnt++;
                 break;
             }
-            if (cp[NonY][7] == null || ChessPane.grid[NonY][4].havePiece != cp[NonY][4]) {
+            if (cp[NonY][7] == null || chessPane.grid[NonY][4].havePiece != cp[NonY][4]) {
                 leftCnt++;
                 break;
             }
@@ -123,11 +129,11 @@ public class King extends ChessPiece {
         //오른쪽 룩과 킹
         for (int i = 0; i < chessPane.turn.size() - 1; i++) {
             ChessPiece[][] cp = chessPane.turn.elementAt(i);
-            if (cp[NonY][7] == null || ChessPane.grid[NonY][7].havePiece != cp[NonY][7]) {
+            if (cp[NonY][7] == null || chessPane.grid[NonY][7].havePiece != cp[NonY][7]) {
                 rightCnt++;
                 break;
             }
-            if (cp[NonY][4] == null || ChessPane.grid[NonY][4].havePiece != cp[NonY][4]) {
+            if (cp[NonY][4] == null || chessPane.grid[NonY][4].havePiece != cp[NonY][4]) {
                 rightCnt++;
                 break;
             }
@@ -138,10 +144,10 @@ public class King extends ChessPiece {
         if(rightCnt !=0 && leftCnt !=0)
             return 0;
         //킹과 룩 사이에 아무것도 없으면
-        if (ChessPane.grid[NonY][1].havePiece == null || ChessPane.grid[NonY][2].havePiece == null || ChessPane.grid[NonY][3].havePiece == null) {
+        if (chessPane.grid[NonY][1].havePiece == null || chessPane.grid[NonY][2].havePiece == null || chessPane.grid[NonY][3].havePiece == null) {
             return 1;
         }
-        if (ChessPane.grid[NonY][5].havePiece == null || ChessPane.grid[NonY][6].havePiece == null)
+        if (chessPane.grid[NonY][5].havePiece == null || chessPane.grid[NonY][6].havePiece == null)
             return 2;
 
 
@@ -278,4 +284,3 @@ public class King extends ChessPiece {
         return 0;
     }
 }
-
