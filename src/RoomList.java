@@ -270,11 +270,7 @@ public class RoomList implements Serializable {
 
         initializeLabels();
         // 채팅 패널 생성 및 구성
-        chatPanel = new JPanel(new BorderLayout());
-        chatPanel.setPreferredSize(new Dimension(400, 75)); // 채팅 패널의 선호되는 크기를 조금 줄임
-        chatField = new JTextField();
-
-        sendButton = new JButton("Send");
+        sendButton = new JButton("Ready");
         chatPanel.add(chatField, BorderLayout.CENTER);
         chatPanel.add(sendButton, BorderLayout.EAST);
 
@@ -295,6 +291,15 @@ public class RoomList implements Serializable {
 
         // 창을 닫았을 때 프로그램이 종료되도록 설정
         jf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // If the number of clients in the room reaches 2, change the button text to "Go"
+                if (idv.get(roomNum).size() == 2) {
+                    sendButton.setText("Go");
+                }
+            }
+        });
     }
     private void configureLabelColor(JLabel label, int index) {
         if (index == 0) {

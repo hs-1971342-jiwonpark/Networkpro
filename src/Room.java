@@ -39,20 +39,26 @@ public class Room {
 
     void connectToServer() {
         // 서버에 연결하는 로직 구현
+
         receiveThread = new Thread(new Runnable() {
-            void receiveMessage() {
+
+            @Override
+            public void run() {
                 try {
-                    Send inMsg = (Send) in.readObject();
-                    if (inMsg != null) {
+                    Send inMsg;
+                    while ((inMsg = (Send) in.readObject()) != null) {
                         switch (inMsg.mode) {
                             case Send.MODE_RETURN:
-                                System.out.println(inMsg.users);
-                                System.out.println(userList);
                                 for(String a : inMsg.users) {
                                     if (!userList.contains(a)) {
                                         userList.add(a);
-                                        sendButton.setText("Ready");
+
                                     }
+                                }
+                                if (userList.size() == 1) {
+                                    sendButton.setText("Ready");
+                                } else if (userList.size() == 2) {
+                                    sendButton.setText("Go");
                                 }
                                 initializeLabels();
                                 break;
@@ -63,13 +69,7 @@ public class Room {
                 } catch (ClassNotFoundException e) {
                     System.out.println("잘못된 객체가 전달되었습니다.");
                 }
-            }
 
-            @Override
-            public void run() {
-                while (receiveThread == Thread.currentThread()) {
-                    receiveMessage();
-                }
             }
         });
         receiveThread.start();
@@ -98,6 +98,14 @@ public class Room {
         chatField = new JTextField();
 
         sendButton = new JButton("Ready");
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(sendButton.getText().equals("Go")){
+                    new StartFrame();
+                }
+            }
+        });
 
         // 패널들을 프레임에 추가
         jf.add(gridPanel, BorderLayout.CENTER);
