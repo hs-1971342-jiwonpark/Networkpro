@@ -115,6 +115,7 @@ public class Server extends JFrame {
         try {
             acceptThread = null;
             serverSocket.close();
+            printDisplay("연결 종료");
 
         } catch (IOException e) {
             printDisplay("접속 종료 오류발생\n");
@@ -264,7 +265,7 @@ public class Server extends JFrame {
                                 a= roomCP.elementAt(team).lastElement();
                                 for(ClientHandler c: users) {
                                     if (c.team == this.team) {
-                                       c.send(new Send(a, roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
+                                        c.send(new Send(a, roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
                                     }
                                 }
                             }
@@ -326,9 +327,3 @@ public class Server extends JFrame {
         //sg.startServer();
     }
 }
-
-
-
-
-
-

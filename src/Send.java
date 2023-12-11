@@ -142,16 +142,3 @@ public class Send implements Serializable {
         return pos;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
