@@ -179,17 +179,21 @@ public class Server extends JFrame {
                         printDisplay("새 참가자 : "+uid);
                         printDisplay("현재 참가자 수 : "+ users.size());
                         sendAd(msg);
+                        printDisplay("보낸 패킷" + msg.userID + "\n" + msg.userPW);
                     }
                     else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
                     }
                     else if (msg.mode == Send.MODE_IN_ROOM){
+                        printDisplay("유저 아이디 : "+msg.userID);
+                        printDisplay("코드 "+msg.mode);
                         msg.mode = Send.MODE_RETURN;
                         System.out.println(userList.size());
 
                         userList.add(msg.userID);
                         msg.users = userList;
                         broadcasting(new Send(turn,msg.userID,userList,Send.MODE_RETURN));
+                        printDisplay("보낸 패킷: "+turn +"\n"+msg.userID+"\n"+userList +"\n"+Send.MODE_RETURN);
                         if(users.size()%2==0){
                             users.get(users.size()-2).cor = Cor.white;
                             users.get(users.size()-1).cor =Cor.black;
@@ -201,10 +205,13 @@ public class Server extends JFrame {
                         break;
 
                     }else if(msg.mode == Send.RESULT_OK){
-                        System.out.println("시작버튼");
+
+                        printDisplay("버튼 누른 유저의 턴  : "+msg.turn);
+                        printDisplay("코드 : "+ msg.mode);
                         for(ClientHandler c: users){
                             if(c.team == msg.turn) {
                                 c.send(new Send(c.cor, Send.RESULT_OK));
+                                printDisplay("보낸 패킷: "+ Send.RESULT_OK+"\n"+c.cor);
                             }
                         }
 
@@ -218,35 +225,37 @@ public class Server extends JFrame {
                                 c.send(msg);
                             }
                         }
+                        printDisplay("보낸 패킷: "+msg.mode+"\n"+msg.message);
 
                     }else if(msg.mode == Send.MODE_TX_ChessPiece){
-                        //System.out.println(Arrays.deepToString(msg.cp));
+                        printDisplay("체스판 : "+ Arrays.deepToString(msg.cp));
+                        printDisplay("모드 : "+msg.mode);
                         roomCP.elementAt(team).add(msg.cp);
-                        //System.out.println(chessPieces.size());
                         for(ClientHandler c: users) {
                             if (c.team == this.team) {
                                 c.send(new Send(msg.cp, roomCP.elementAt(team).size(), Send.MODE_TX_ChessPiece));
+                                printDisplay("보낸 패킷: "+ Arrays.deepToString(msg.cp) +"\n"+ roomCP.elementAt(team).size()+"\n"+ Send.MODE_TX_ChessPiece);
                             }
                         }
                     }else if(msg.mode == Send.MODE_GAMESTART){
-
+                        printDisplay("코드 "+msg.mode);
                         Vector<ChessPiece[][]> a = new Vector<>();
                         ChessPiece[][] cc = cp.saveTurn();
                         a.add(cc);
                         roomCP.add(team,a);
-
-
-
-
-                        // System.out.println(Arrays.deepToString(chessPieces.lastElement()));
                         for(ClientHandler c: users) {
                             if (c.team == this.team) {
                                 c.send(new Send(roomCP.elementAt(team).lastElement(), roomCP.elementAt(team).size(), Send.MODE_TX_ChessPiece));
+
+                                printDisplay("보낸 패킷: "+ Arrays.deepToString(roomCP.elementAt(team).lastElement())+"\n"+roomCP.elementAt(team).size()+"\n"+Send.MODE_TX_ChessPiece);
                             }
                         }
                     }else if(msg.mode == Send.MODE_MOVE_CANCEL){
                         //게임의 시작은 turn이 1부터임
                         //따라서 첫턴인 화이트는 홀수
+
+                        printDisplay("플레이어의 색깔 : "+msg.cor);
+                        printDisplay("코드 "+msg.mode);
                         int i= (msg.cor == Cor.white)?1:0;
                         ChessPiece[][] a =null;
                         //오직 자신의 턴에서만 무르기 가능
@@ -258,6 +267,7 @@ public class Server extends JFrame {
                                 for(ClientHandler c: users) {
                                     if (c.team == this.team) {
                                         c.send(new Send(a,  roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
+                                        printDisplay("보낸 패킷: "+ Arrays.deepToString(a) +"\n"+  roomCP.elementAt(team).size()+"\n"+Send.MODE_MOVE_CANCEL);
                                     }
                                 }
                             }
@@ -266,14 +276,18 @@ public class Server extends JFrame {
                                 for(ClientHandler c: users) {
                                     if (c.team == this.team) {
                                         c.send(new Send(a, roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
+                                        printDisplay("보낸 패킷: "+ Arrays.deepToString(a) +"\n"+  roomCP.elementAt(team).size()+"\n"+Send.MODE_MOVE_CANCEL);
                                     }
                                 }
                             }
                     }else if(msg.mode == Send.MODE_GAME_OVER) {
+                        printDisplay("플레이어의 색깔 : "+msg.cor);
+                        printDisplay("코드 "+msg.mode);
                         message = msg.cor.toString()+"색인 "+uid+"님이 졌습니다!!!";
                         for(ClientHandler c: users) {
                             if (c.team == this.team) {
                                 c.send(new Send(message, Send.MODE_GAME_OVER));
+                                printDisplay("보낸 패킷: "+ message+"\n"+ Send.MODE_GAME_OVER);
                             }
                         }
                     }
