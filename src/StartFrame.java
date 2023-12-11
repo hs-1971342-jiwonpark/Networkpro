@@ -118,13 +118,7 @@ public class StartFrame extends JFrame {
             out.writeObject(send);
             out.flush();
         } catch (IOException e) {
-            System.out.println(in);
-            System.out.println(out);
-            e.printStackTrace();
-            System.out.println(e);
-            System.out.println("startFrame클라이언트 일반 전송 오류"+e.getMessage());
-            System.out.println(e.getCause());
-            System.out.println(e.getStackTrace());
+            e.getMessage();
         }
     }
     private void GUI(){
@@ -175,7 +169,7 @@ public class StartFrame extends JFrame {
                         public void mouseClicked(MouseEvent e) {
                             if(!myTurn) return;
                             Pos ps = ((Square) e.getComponent()).pos;
-                            //System.out.println(((Square) e.getComponent()).pos);
+
                             if(firstClick){
                                 switch (process.Check_first_click(ps)){
                                     case 1://정상

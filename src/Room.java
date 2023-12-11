@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -29,6 +30,7 @@ public class Room {
     private ObjectInputStream in;
     static private Vector<String> userList = new Vector<String>();
 
+    private int turn;
 
     private void send(Send msg) {
         try {
@@ -44,34 +46,48 @@ public class Room {
         receiveThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                    try {
-                        Send inMsg;
-                        while ((inMsg = (Send)in.readObject()) != null) {
-                            if (inMsg.mode == Send.MODE_RETURN) {
-                                System.out.println(inMsg.users);
-                                System.out.println(userList);
-                                for (String a : inMsg.users)
-                                    if (!userList.contains(a))
-                                        userList.add(a);
-                                initializeLabels();
-                            } else if (inMsg.mode == Send.MODE_ENTER_HUMAN) {
-                                System.out.println(inMsg.cor);
-                                if (inMsg.cor == Cor.black)
-                                    Thread.sleep(100);
-                                new StartFrame(socket, in, out, inMsg.cor);
-                                Thread.currentThread().interrupt();
-                                exit();
-                                break;
+                try {
+                    Send inMsg;
+                    while ((inMsg = (Send) in.readObject()) != null) {
+                        if (inMsg.mode == Send.MODE_RETURN) {
+                            if(id.equals(inMsg.userID)) {
+                                turn = inMsg.turn;
                             }
+                            for (String a : inMsg.users) {
+                                if (!userList.contains(a)) {
+                                    userList.add(a);
+                                }
+                            }
+                            System.out.println(inMsg.cor);
+                            if (userList.size()%2==1) {
+                                sendButton.setText("Ready");
+                            } else {
+                                sendButton.setText("Go");
+                            }
+                            initializeLabels();
+
+                        } else if (inMsg.mode == Send.MODE_ENTER_HUMAN) {
+
                         }
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        System.out.println("잘못된 객체가 전달되었습니다.");
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        else if(inMsg.mode==Send.RESULT_OK){
+                            System.out.println("시작버튼 받음");
+                            System.out.println(inMsg.cor);
+                            if (inMsg.cor == Cor.black)
+                                Thread.sleep(100);
+                            new StartFrame(socket,in,out,inMsg.cor);
+                            Thread.currentThread().interrupt();
+                            //exit();
+                            break;
+                        }
                     }
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("잘못된 객체가 전달되었습니다.");
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
         receiveThread.start();
@@ -100,9 +116,18 @@ public class Room {
         chatPanel.setPreferredSize(new Dimension(400, 75)); // 채팅 패널의 선호되는 크기를 조금 줄임
         chatField = new JTextField();
 
-        sendButton = new JButton("Send");
+        sendButton = new JButton();
         chatPanel.add(chatField, BorderLayout.CENTER);
         chatPanel.add(sendButton, BorderLayout.EAST);
+
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(sendButton.getText().equals("Go"))
+                    send(new Send(turn,Send.RESULT_OK));
+            }
+        });
+
 
         // 패널들을 프레임에 추가
         jf.add(gridPanel, BorderLayout.CENTER);
@@ -154,7 +179,7 @@ public class Room {
         gridPanel.repaint(); // 다시 그리기
     }
 
-    public void exit(){
+    public void exit() {
         jf.dispose();
     }
 

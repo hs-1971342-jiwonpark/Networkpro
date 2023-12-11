@@ -1,3 +1,5 @@
+
+
 import javax.swing.*;
 import java.io.Serializable;
 import java.util.Vector;
@@ -18,6 +20,7 @@ public class Send implements Serializable {
     public final static int MODE_GAME_OVER = 0x512;
     public final static int MODE_ENTER_HUMAN = 1026;
     public final static int MODE_RETURN = 0x2048;
+    public final static int RESULT_OK = 0x4096;
     private Pos pos;
 
     Cor cor;
@@ -25,7 +28,7 @@ public class Send implements Serializable {
     private int sendType;
     String userID;
     int mode;
-
+    int turn;
     String message;
     Vector<String>users = new Vector<>();
     Vector<String> roomList = new Vector<>(10);
@@ -45,6 +48,9 @@ public class Send implements Serializable {
     int cpSize=0;
 
     boolean dodelete = false;
+
+
+
     void setName(String name){
         this.userID = name;
     }
@@ -80,6 +86,16 @@ public class Send implements Serializable {
         this.users = users;
         this.mode = mode;
     }
+    public Send(int turn,int mode){
+        this.turn = turn;
+        this.mode = mode;
+    }
+    public Send(int turn,String id, Vector<String> users,int mode){
+        this.userID = id;
+        this.users = users;
+        this.mode = mode;
+        this.turn = turn;
+    }
     public Send(String id,Vector<String>roomList,String roomName,Vector<Vector<String>> idArr, int roomNum, int code){
         this.userID =id;
         this.roomList = roomList;
@@ -89,9 +105,14 @@ public class Send implements Serializable {
         this.idv = idArr;
     }
     public Send(Cor cor,int mode){
-         this.mode = mode;
-         this.cor = cor;
-     }
+        this.mode = mode;
+        this.cor = cor;
+    }
+    public Send(Cor cor,int turn,int mode){
+        this.mode = mode;
+        this.cor = cor;
+        this.turn = turn;
+    }
     public Send(String id,int roomNum,String roomName,int mode){
         this.userID = id;
         this.roomNum = roomNum;
@@ -121,3 +142,16 @@ public class Send implements Serializable {
         return pos;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

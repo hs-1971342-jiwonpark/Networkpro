@@ -24,9 +24,9 @@ public class Server extends JFrame {
 
     private Vector<ChessPiece[][]> chessPieces = new Vector<ChessPiece[][]>();
     private Vector<String> userList = new Vector<>();
-
+    private Vector<Vector<ChessPiece[][]>> roomCP = new Vector<Vector<ChessPiece[][]>>();
     private ChessPane cp = ChessPane.getInstance();
-
+    private int turn=0;
     private Thread acceptThread = null;
     private Vector<ClientHandler> users = new Vector<ClientHandler>();
     public Server(int port) {
@@ -153,6 +153,7 @@ public class Server extends JFrame {
         private String upw;
 
         private Cor cor;
+        private int team;
 
         String getUid(){
             return uid;
@@ -184,65 +185,96 @@ public class Server extends JFrame {
                     else if (msg.mode == Send.MODE_IN_ROOM){
                         msg.mode = Send.MODE_RETURN;
                         System.out.println(userList.size());
-                        if(users.size()==2){
-                           users.get(0).cor = Cor.white;
-                           users.get(1).cor =Cor.black;
-                        }
-                        else{
-                            this.cor =null;
-                        }
+
                         userList.add(msg.userID);
                         msg.users = userList;
-                        System.out.println(userList);
-                        System.out.println(msg.users);
-                        if(users.size() ==2){
-                            users.elementAt(0).send(new Send(users.elementAt(0).cor,Send.MODE_ENTER_HUMAN));
-                            users.elementAt(1).send(new Send(users.elementAt(1).cor,Send.MODE_ENTER_HUMAN));
+                        broadcasting(new Send(turn,msg.userID,userList,Send.MODE_RETURN));
+                        if(users.size()%2==0){
+                            users.get(users.size()-2).cor = Cor.white;
+                            users.get(users.size()-1).cor =Cor.black;
+                            users.get(users.size()-2).team = turn;
+                            users.get(users.size()-1).team = turn;
+                            turn++;
                         }
-                        else if(users.size()>2){
-                            sendAd(new Send(this.cor,Send.MODE_ENTER_HUMAN));
-                        }
-                        else
-                            broadcasting(new Send(userList, Send.MODE_RETURN));
-
-
                     }else if(msg.mode == Send.MODE_LOGOUT) {
                         break;
+
+                    }else if(msg.mode == Send.RESULT_OK){
+                        System.out.println("시작버튼");
+                        for(ClientHandler c: users){
+                            if(c.team == msg.turn) {
+                                c.send(new Send(c.cor, Send.RESULT_OK));
+                            }
+                        }
+
+
                     }else if(msg.mode == Send.MODE_TX_STRING) {
                         message = uid + ": " + msg.message;
                         printDisplay(message);
                         msg.message = message;
-                        broadcasting(msg);
+                        for(ClientHandler c: users) {
+                            if(c.team == this.team) {
+                                c.send(msg);
+                            }
+                        }
 
                     }else if(msg.mode == Send.MODE_TX_ChessPiece){
                         //System.out.println(Arrays.deepToString(msg.cp));
-                        chessPieces.add(msg.cp);
+                        roomCP.elementAt(team).add(msg.cp);
                         //System.out.println(chessPieces.size());
-                        broadcasting(new Send(msg.cp,chessPieces.size(),Send.MODE_TX_ChessPiece));
+                        for(ClientHandler c: users) {
+                            if (c.team == this.team) {
+                                c.send(new Send(msg.cp, roomCP.elementAt(team).size(), Send.MODE_TX_ChessPiece));
+                            }
+                        }
                     }else if(msg.mode == Send.MODE_GAMESTART){
-                        chessPieces.add(cp.saveTurn());
+
+                        Vector<ChessPiece[][]> a = new Vector<>();
+                        ChessPiece[][] cc = cp.saveTurn();
+                        a.add(cc);
+                        roomCP.add(team,a);
+
+
+
+
                         // System.out.println(Arrays.deepToString(chessPieces.lastElement()));
-                        broadcasting(new Send(chessPieces.lastElement(),chessPieces.size(),Send.MODE_TX_ChessPiece));
+                        for(ClientHandler c: users) {
+                            if (c.team == this.team) {
+                                c.send(new Send(roomCP.elementAt(team).lastElement(), roomCP.elementAt(team).size(), Send.MODE_TX_ChessPiece));
+                            }
+                        }
                     }else if(msg.mode == Send.MODE_MOVE_CANCEL){
                         //게임의 시작은 turn이 1부터임
                         //따라서 첫턴인 화이트는 홀수
                         int i= (msg.cor == Cor.white)?1:0;
                         ChessPiece[][] a =null;
                         //오직 자신의 턴에서만 무르기 가능
-                        if(chessPieces.size()%2 == i)
-                            if(chessPieces.size()-2>0){
-                                chessPieces.remove(chessPieces.size()-1);
-                                chessPieces.remove(chessPieces.size()-1);
-                                a= chessPieces.lastElement();
-                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
+                        if( roomCP.elementAt(team).size()%2 == i)
+                            if( roomCP.elementAt(team).size()-2>0){
+                                roomCP.elementAt(team).remove( roomCP.elementAt(team).size()-1);
+                                roomCP.elementAt(team).remove( roomCP.elementAt(team).size()-1);
+                                a=  roomCP.elementAt(team).lastElement();
+                                for(ClientHandler c: users) {
+                                    if (c.team == this.team) {
+                                        c.send(new Send(a,  roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
+                                    }
+                                }
                             }
-                            else if(chessPieces.size() >= 1){
-                                a= chessPieces.lastElement();
-                                broadcasting(new Send(a,chessPieces.size(),Send.MODE_MOVE_CANCEL));
+                            else if(roomCP.elementAt(team).size() >= 1){
+                                a= roomCP.elementAt(team).lastElement();
+                                for(ClientHandler c: users) {
+                                    if (c.team == this.team) {
+                                       c.send(new Send(a, roomCP.elementAt(team).size(), Send.MODE_MOVE_CANCEL));
+                                    }
+                                }
                             }
                     }else if(msg.mode == Send.MODE_GAME_OVER) {
                         message = msg.cor.toString()+"색인 "+uid+"님이 졌습니다!!!";
-                        broadcasting(new Send(message,Send.MODE_GAME_OVER));
+                        for(ClientHandler c: users) {
+                            if (c.team == this.team) {
+                                c.send(new Send(message, Send.MODE_GAME_OVER));
+                            }
+                        }
                     }
                 }
                 users.removeElement(this);
@@ -294,3 +326,9 @@ public class Server extends JFrame {
         //sg.startServer();
     }
 }
+
+
+
+
+
+
